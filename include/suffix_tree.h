@@ -2,7 +2,7 @@
 #define DSL_SUFFIX_TREE_H_
 
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <string>
 
 namespace dsl {
@@ -22,7 +22,7 @@ struct Node {
   Node();
   int64_t value;
   int64_t suffix_link;  // Points to the longest proper suffix of this node
-  std::unordered_map<char, Edge> edges;
+  std::map<char, Edge> edges;
 };
 
 struct ActivePoint {
