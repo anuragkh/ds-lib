@@ -30,8 +30,8 @@ make install
 A sample use-case of the suffix tree is shown below:
 
 ```c++
-\#include <suffix-tree.h>
-\#include <iostream>
+#include <suffix-tree.h>
+#include <iostream>
 
 int main(int argc, char **argv) {
     
