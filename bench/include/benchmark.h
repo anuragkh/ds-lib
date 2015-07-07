@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <fstream>
+#include <vector>
 
 #if defined(__i386__)
 
