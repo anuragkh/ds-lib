@@ -1,4 +1,4 @@
-## Library of select Data Structures
+## Data Structure Library
 
 A C++ library of selected data-structures that I've implemented (or ported)
 during the course of my research.
