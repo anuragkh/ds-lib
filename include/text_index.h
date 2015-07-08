@@ -1,6 +1,9 @@
 #ifndef DSL_TEXT_INDEX_H_
 #define DSL_TEXT_INDEX_H_
 
+#include <cstdint>
+#include <vector>
+
 namespace dsl {
 
 class TextIndex {
