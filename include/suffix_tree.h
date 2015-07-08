@@ -13,8 +13,8 @@ namespace suffix_tree {
 struct Edge {
   Edge();
   Edge(int64_t start, int64_t end, int64_t origin, int64_t destination);
-  int64_t start_index, end_index;
-  int64_t origin_node, destination_node;
+  int64_t start_idx, end_idx;
+  int64_t src_node, dst_node;
   int64_t length();
 };
 
@@ -42,6 +42,12 @@ class SuffixTree {
    * Display the Suffix Tree on stdout.
    */
   void show();
+
+  /**
+   * Get the number of nodes in the Suffix Tree
+   * @return Number of nodes in the Suffix Tree
+   */
+  uint64_t numNodes();
 
   /**
    * Find all occurrences of a substring in the original string.

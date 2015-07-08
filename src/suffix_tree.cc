@@ -9,23 +9,23 @@
 // Edge structure.
 dsl::suffix_tree::Edge::Edge(int64_t start, int64_t end, int64_t origin,
                              int64_t destination) {
-  start_index = start;
-  end_index = end;
-  origin_node = origin;
-  destination_node = destination;
-  if (end_index != CURRENT_END)
-    assert(end_index >= start_index);  //sanity check
+  start_idx = start;
+  end_idx = end;
+  src_node = origin;
+  dst_node = destination;
+  if (end_idx != CURRENT_END)
+    assert(end_idx >= start_idx);  //sanity check
 }
 
 dsl::suffix_tree::Edge::Edge()
-    : start_index(-1),
-      end_index(-1),
-      origin_node(-1),
-      destination_node(-1) {
+    : start_idx(-1),
+      end_idx(-1),
+      src_node(-1),
+      dst_node(-1) {
 }
 
 int64_t dsl::suffix_tree::Edge::length() {
-  return end_index - start_index + 1;
+  return end_idx - start_idx + 1;
 }
 
 // Node structure.
@@ -105,7 +105,7 @@ dsl::SuffixTree::SuffixTree(const std::string& s)
         assert(active_point.active_edge != 0 && active_point.active_length > 0);
         last_inserted = new_inserted;
         new_inserted = splitEdge(
-            activeEdge(), activeEdge().start_index + active_point.active_length,
+            activeEdge(), activeEdge().start_idx + active_point.active_length,
             i, i - remainder + 1);
         if (!first) {  //rule 2
           nodes_[last_inserted].suffix_link = new_inserted;
@@ -136,7 +136,9 @@ dsl::SuffixTree::SuffixTree(const std::string& s)
 
 // Print a representation of the suffix tree for debugging.
 void dsl::SuffixTree::show() {
-  std::cout << "Original text: [" << text_ << "]";
+  std::cout << "Original text: [" << text_ << "]\n";
+  std::cout << "Text size = %zu\n" << text_.length() << std::endl;
+  std::cout << "Num nodes = %zu\n" << nodes_.size() << std::endl;
   for (int64_t i = 0; i < nodes_.size(); i++) {
     if (!nodes_[i].edges.empty()) {
       std::cout << "node " << i;
@@ -145,22 +147,26 @@ void dsl::SuffixTree::show() {
       std::cout << std::endl;
       for (auto it = nodes_[i].edges.begin(); it != nodes_[i].edges.end();
           ++it) {
-        int64_t start = it->second.start_index;
-        int64_t end = it->second.end_index;
+        int64_t start = it->second.start_idx;
+        int64_t end = it->second.end_idx;
         if (end == CURRENT_END)
           end = text_.size() - 1;
         std::cout << "[" << it->first << "] : ["
             << text_.substr(start, end - start + 1) << "]";
 
         // Edge does not point to leaf node.
-        if (it->second.end_index != CURRENT_END)
-          std::cout << " -> " << it->second.destination_node;
+        if (it->second.end_idx != CURRENT_END)
+          std::cout << " -> " << it->second.dst_node;
         else
-          std::cout << "(" << nodes_[it->second.destination_node].value << ")";
+          std::cout << "(" << nodes_[it->second.dst_node].value << ")";
         std::cout << std::endl;
       }
     }
   }
+}
+
+uint64_t dsl::SuffixTree::numNodes() {
+  return nodes_.size();
 }
 
 bool dsl::SuffixTree::suffixAlreadyExists(int64_t i) {
@@ -193,16 +199,15 @@ int64_t dsl::SuffixTree::splitEdge(dsl::suffix_tree::Edge& e,
   suffix_tree::Edge old_edge = e;
 
   // Edit the edge to be split to go from active node to new internal node.
-  e.destination_node = nodes_.size() - 1;
-  e.end_index = position_to_split - 1;
+  e.dst_node = nodes_.size() - 1;
+  e.end_idx = position_to_split - 1;
 
   // Add an edge from the internal node to the orphan leaf node.
   nodes_[nodes_.size() - 1].edges.insert(
       std::make_pair(
           text_[position_to_split],
-          dsl::suffix_tree::Edge(position_to_split, old_edge.end_index,
-                                 nodes_.size() - 1,
-                                 old_edge.destination_node)));
+          dsl::suffix_tree::Edge(position_to_split, old_edge.end_idx,
+                                 nodes_.size() - 1, old_edge.dst_node)));
 
   // Add a new leaf node to the internal node representing the repeated
   // character.
@@ -215,7 +220,7 @@ int64_t dsl::SuffixTree::splitEdge(dsl::suffix_tree::Edge& e,
   nodes_[nodes_.size() - 1].value = suffix_start;
 
   // Return the address of the internal node.
-  return e.destination_node;
+  return e.dst_node;
 }
 
 dsl::suffix_tree::Edge& dsl::SuffixTree::activeEdge() {
@@ -232,7 +237,7 @@ char dsl::SuffixTree::activePointCharacter() {
   if (active_point.active_edge == 0)
     return 0;
   return text_[nodes_[active_point.active_node].edges.at(
-      text_[active_point.active_edge]).start_index + active_point.active_length];
+      text_[active_point.active_edge]).start_idx + active_point.active_length];
 }
 
 // Fixes the active point when active_length grows beyond the bounds of the
@@ -240,12 +245,12 @@ char dsl::SuffixTree::activePointCharacter() {
 void dsl::SuffixTree::canonize() {
   if (active_point.active_edge == 0)
     return;
-  if (activeEdge().end_index == CURRENT_END)
+  if (activeEdge().end_idx == CURRENT_END)
     return;
-  while (activeEdge().start_index + active_point.active_length
-      > activeEdge().end_index) {
-    int64_t increment = activeEdge().end_index - activeEdge().start_index + 1;
-    active_point.active_node = activeEdge().destination_node;
+  while (activeEdge().start_idx + active_point.active_length
+      > activeEdge().end_idx) {
+    int64_t increment = activeEdge().end_idx - activeEdge().start_idx + 1;
+    active_point.active_node = activeEdge().dst_node;
     active_point.active_length -= increment;
     if (active_point.active_length > 0)
       active_point.active_edge += increment;
@@ -254,7 +259,7 @@ void dsl::SuffixTree::canonize() {
       return;
     }
     if (active_point.active_edge != 0)
-      if (activeEdge().end_index == CURRENT_END)
+      if (activeEdge().end_idx == CURRENT_END)
         return;
     assert(active_point.active_edge >= 0);
   }
@@ -274,7 +279,7 @@ int64_t dsl::SuffixTree::findSubtreeRoot(const std::string& query) {
     } else {  // We are on an edge
       if (!(query[i]
           == text_[nodes_[active_point.active_node].edges.at(
-              query[active_point.active_edge]).start_index
+              query[active_point.active_edge]).start_idx
               + active_point.active_length])) {
         return -1;
       } else {
@@ -286,7 +291,7 @@ int64_t dsl::SuffixTree::findSubtreeRoot(const std::string& query) {
         >= nodes_[active_point.active_node].edges.at(
             query[active_point.active_edge]).length()) {
       active_point.active_node = nodes_[active_point.active_node].edges.at(
-          query[active_point.active_edge]).destination_node;
+          query[active_point.active_edge]).dst_node;
       active_point.active_length = active_point.active_edge = 0;
     }
   }
@@ -294,7 +299,7 @@ int64_t dsl::SuffixTree::findSubtreeRoot(const std::string& query) {
     return active_point.active_node;
   else {
     return nodes_[active_point.active_node].edges.at(
-        query[active_point.active_edge]).destination_node;
+        query[active_point.active_edge]).dst_node;
   }
 }
 
@@ -322,7 +327,7 @@ std::vector<int64_t> dsl::SuffixTree::search(const std::string& query) {
     // Otherwise, put its children on the stack.
     for (auto it = nodes_[current_node].edges.begin();
         it != nodes_[current_node].edges.end(); ++it) {
-      stack.push(it->second.destination_node);
+      stack.push(it->second.dst_node);
     }
   }
   return values;
@@ -352,7 +357,7 @@ int64_t dsl::SuffixTree::count(const std::string& query) {
     // Otherwise, put its children on the stack.
     for (auto it = nodes_[current_node].edges.begin();
         it != nodes_[current_node].edges.end(); ++it) {
-      stack.push(it->second.destination_node);
+      stack.push(it->second.dst_node);
     }
   }
   return count;
@@ -407,19 +412,16 @@ size_t dsl::SuffixTree::serializeEdge(suffix_tree::Edge& edge,
                                       std::ostream& out) {
   size_t out_size = 0;
 
-  out.write(reinterpret_cast<const char *>(&(edge.start_index)),
-            sizeof(int64_t));
+  out.write(reinterpret_cast<const char *>(&(edge.start_idx)), sizeof(int64_t));
   out_size += sizeof(int64_t);
 
-  out.write(reinterpret_cast<const char *>(&(edge.end_index)), sizeof(int64_t));
+  out.write(reinterpret_cast<const char *>(&(edge.end_idx)), sizeof(int64_t));
   out_size += sizeof(int64_t);
 
-  out.write(reinterpret_cast<const char *>(&(edge.origin_node)),
-            sizeof(int64_t));
+  out.write(reinterpret_cast<const char *>(&(edge.src_node)), sizeof(int64_t));
   out_size += sizeof(int64_t);
 
-  out.write(reinterpret_cast<const char *>(&(edge.destination_node)),
-            sizeof(int64_t));
+  out.write(reinterpret_cast<const char *>(&(edge.dst_node)), sizeof(int64_t));
   out_size += sizeof(int64_t);
 
   return out_size;
@@ -479,16 +481,16 @@ size_t dsl::SuffixTree::deserializeEdge(suffix_tree::Edge& edge,
                                         std::istream& in) {
   size_t in_size = 0;
 
-  in.read(reinterpret_cast<char *>(&(edge.start_index)), sizeof(int64_t));
+  in.read(reinterpret_cast<char *>(&(edge.start_idx)), sizeof(int64_t));
   in_size += sizeof(int64_t);
 
-  in.read(reinterpret_cast<char *>(&(edge.end_index)), sizeof(int64_t));
+  in.read(reinterpret_cast<char *>(&(edge.end_idx)), sizeof(int64_t));
   in_size += sizeof(int64_t);
 
-  in.read(reinterpret_cast<char *>(&(edge.origin_node)), sizeof(int64_t));
+  in.read(reinterpret_cast<char *>(&(edge.src_node)), sizeof(int64_t));
   in_size += sizeof(int64_t);
 
-  in.read(reinterpret_cast<char *>(&(edge.destination_node)), sizeof(int64_t));
+  in.read(reinterpret_cast<char *>(&(edge.dst_node)), sizeof(int64_t));
   in_size += sizeof(int64_t);
 
   return in_size;
