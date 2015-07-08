@@ -24,7 +24,7 @@ dsl::suffix_tree::Edge::Edge()
       dst_node(-1) {
 }
 
-int64_t dsl::suffix_tree::Edge::length() {
+int64_t dsl::suffix_tree::Edge::length() const {
   return end_idx - start_idx + 1;
 }
 
@@ -267,7 +267,7 @@ void dsl::SuffixTree::canonize() {
 
 // Returns the root node of the sub-tree which represents all the suffixes of
 // the query or -1 if query not found.
-int64_t dsl::SuffixTree::findSubtreeRoot(const std::string& query) {
+int64_t dsl::SuffixTree::findSubtreeRoot(const std::string& query) const {
   suffix_tree::ActivePoint active_point = suffix_tree::ActivePoint();
   for (int64_t i = 0; i < query.size(); i++) {
     if (active_point.active_edge == 0) {  // We are on a node
@@ -303,7 +303,7 @@ int64_t dsl::SuffixTree::findSubtreeRoot(const std::string& query) {
   }
 }
 
-std::vector<int64_t> dsl::SuffixTree::search(const std::string& query) {
+std::vector<int64_t> dsl::SuffixTree::search(const std::string& query) const {
   int64_t subtree_root = findSubtreeRoot(query);
   std::stack<int64_t> stack;
   std::vector<int64_t> values;
@@ -333,7 +333,7 @@ std::vector<int64_t> dsl::SuffixTree::search(const std::string& query) {
   return values;
 }
 
-int64_t dsl::SuffixTree::count(const std::string& query) {
+int64_t dsl::SuffixTree::count(const std::string& query) const {
   int64_t subtree_root = findSubtreeRoot(query);
   std::stack<int64_t> stack;
   int64_t count = 0;
@@ -434,6 +434,7 @@ size_t dsl::SuffixTree::deserialize(std::istream& in) {
   size_t text_size;
   in.read(reinterpret_cast<char *>(&text_size), sizeof(uint64_t));
   in_size += sizeof(uint64_t);
+  text_.resize(text_size);
   in.read(reinterpret_cast<char *>(&text_[0]), text_size);
   in_size += text_size;
 

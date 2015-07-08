@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 
+#include "text_index.h"
+
 namespace dsl {
 const static int64_t CURRENT_END = -1;
 
@@ -15,7 +17,7 @@ struct Edge {
   Edge(int64_t start, int64_t end, int64_t origin, int64_t destination);
   int64_t start_idx, end_idx;
   int64_t src_node, dst_node;
-  int64_t length();
+  int64_t length() const;
 };
 
 struct Node {
@@ -32,7 +34,7 @@ struct ActivePoint {
 
 }
 
-class SuffixTree {
+class SuffixTree : public TextIndex {
  public:
   SuffixTree(const std::string& input);
 
@@ -54,14 +56,14 @@ class SuffixTree {
    * @param query The substring to be searched.
    * @return List of all locations of the substring in the original string.
    */
-  std::vector<int64_t> search(const std::string& query);
+  std::vector<int64_t> search(const std::string& query) const;
 
   /**
    * Count all occurrences of a substring in the original string.
    * @param query The substring to be searched.
    * @return Count of all occurrences of the substring in the original string.
    */
-  int64_t count(const std::string& query);
+  int64_t count(const std::string& query) const;
 
   /**
    * Serialize SuffixTree to output stream.
@@ -95,7 +97,7 @@ class SuffixTree {
   void canonize();
 
   // Helper functions for search/count
-  int64_t findSubtreeRoot(const std::string& query);
+  int64_t findSubtreeRoot(const std::string& query) const;
 
   // Helper functions for serialization/deserialization
   size_t serializeNode(suffix_tree::Node& node, std::ostream& out);
