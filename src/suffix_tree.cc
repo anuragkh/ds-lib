@@ -363,6 +363,10 @@ int64_t dsl::SuffixTree::count(const std::string& query) const {
   return count;
 }
 
+bool dsl::SuffixTree::contains(const std::string& query) const {
+  return (findSubtreeRoot(query) >= 0);
+}
+
 size_t dsl::SuffixTree::serialize(std::ostream& out) {
   // Serialize text
   size_t out_size = 0;

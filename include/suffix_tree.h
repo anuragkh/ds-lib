@@ -66,6 +66,14 @@ class SuffixTree : public TextIndex {
   int64_t count(const std::string& query) const;
 
   /**
+   * Check if the original string contains the given query string.
+   * @param query The string to be searched.
+   * @return True if the original string contains the query string,
+   *  false otherwise.
+   */
+  bool contains(const std::string& query) const;
+
+  /**
    * Serialize SuffixTree to output stream.
    * @param out Output stream to serialize to.
    * @return Size of serialized data.
