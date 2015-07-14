@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Niko Välimäki                                   *
+ *   Copyright (C) 2006 by Niko Vï¿½limï¿½ki                                   *
  *                                                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -64,7 +64,7 @@ CHgtArray::CHgtArray(CSA *csa, const char *filename)
     std::ifstream file (filename, ios::in|ios::binary);
     if (file.is_open())
     {
-        std::cout << "Loading HgtArray from file: " << filename << std::endl;
+        std::cerr << "Loading HgtArray from file: " << filename << std::endl;
         file.read((char *)&n, sizeof(ulong));
         HgtBits = new ulong[2 * n / W + 1];
         for (ulong offset = 0; offset < (2 * n / W + 1); offset ++)
@@ -73,7 +73,7 @@ CHgtArray::CHgtArray(CSA *csa, const char *filename)
     }
     else 
     {
-        std::cout << "Unable to open file " << filename << std::endl;
+        std::cerr << "Unable to open file " << filename << std::endl;
         exit(1);
     }
 

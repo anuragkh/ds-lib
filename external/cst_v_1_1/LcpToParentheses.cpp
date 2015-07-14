@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Niko Välimäki                                   *
+ *   Copyright (C) 2006 by Niko Vï¿½limï¿½ki                                   *
  *                                                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -250,7 +250,7 @@ ulong * LcpToParentheses::GetBalancedParentheses(const char *filename, ulong &bi
     std::ifstream file (filename, ios::in|ios::binary);
     if (file.is_open())
     {
-        std::cout << "Loading balanced parentheses from file: " << filename << std::endl;
+        std::cerr << "Loading balanced parentheses from file: " << filename << std::endl;
         file.read((char *)&bitsInP, sizeof(ulong));
         ulong *bp = new ulong[bitsInP / W + 1];
         for (ulong offset = 0; offset < (bitsInP/W + 1); offset ++)
@@ -260,7 +260,7 @@ ulong * LcpToParentheses::GetBalancedParentheses(const char *filename, ulong &bi
     }
     else 
     {
-        std::cout << "Unable to open file " << filename << std::endl;
+        std::cerr << "Unable to open file " << filename << std::endl;
         exit(1);
     }
     return 0;
