@@ -12,15 +12,15 @@ class SuffixArrayIndex : public TextIndex {
   SuffixArrayIndex(const char* input, size_t size);
   SuffixArrayIndex(const char* input, size_t size, SuffixArray* suffix_array);
 
-  void search(std::vector<int64_t>& results, const std::string& query);
-  int64_t count(const std::string& query);
-  bool contains(const std::string& query);
+  void search(std::vector<int64_t>& results, const std::string& query) const;
+  int64_t count(const std::string& query) const;
+  bool contains(const std::string& query) const;
 
   size_t serialize(std::ostream& out);
   size_t deserialize(std::istream& in);
  private:
-  std::pair<int64_t, int64_t> getRange(const std::string& query);
-  int32_t compare(const std::string& query, uint64_t pos);
+  std::pair<int64_t, int64_t> getRange(const std::string& query) const;
+  int32_t compare(const std::string& query, uint64_t pos) const;
 
   SuffixArray *suffix_array_;
   const char* input_;

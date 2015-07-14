@@ -24,7 +24,8 @@ dsl::SuffixArrayIndex::SuffixArrayIndex(const std::string& input)
     : SuffixArrayIndex(input, new dsl::SuffixArray(input)) {
 }
 
-int32_t dsl::SuffixArrayIndex::compare(const std::string& query, uint64_t pos) {
+int32_t dsl::SuffixArrayIndex::compare(const std::string& query,
+                                       uint64_t pos) const {
   for (uint64_t i = pos, q_pos = 0; i < pos + query.length(); i++, q_pos++) {
     if (input_[i % size_] != query[q_pos])
       return input_[i % size_] - query[q_pos];
@@ -33,7 +34,7 @@ int32_t dsl::SuffixArrayIndex::compare(const std::string& query, uint64_t pos) {
 }
 
 std::pair<int64_t, int64_t> dsl::SuffixArrayIndex::getRange(
-    const std::string& query) {
+    const std::string& query) const {
   int64_t st = size_ - 1;
   int64_t sp = 0;
   int64_t s;
@@ -61,7 +62,7 @@ std::pair<int64_t, int64_t> dsl::SuffixArrayIndex::getRange(
 }
 
 void dsl::SuffixArrayIndex::search(std::vector<int64_t>& results,
-                                   const std::string& query) {
+                                   const std::string& query) const {
   std::pair<int64_t, int64_t> range = getRange(query);
   if (range.second < range.first) {
     return;
@@ -72,12 +73,12 @@ void dsl::SuffixArrayIndex::search(std::vector<int64_t>& results,
   }
 }
 
-int64_t dsl::SuffixArrayIndex::count(const std::string& query) {
+int64_t dsl::SuffixArrayIndex::count(const std::string& query) const {
   std::pair<int64_t, int64_t> range = getRange(query);
   return range.second - range.first + 1;
 }
 
-bool dsl::SuffixArrayIndex::contains(const std::string& query) {
+bool dsl::SuffixArrayIndex::contains(const std::string& query) const {
   std::pair<int64_t, int64_t> range = getRange(query);
   return (range.second >= range.first);
 }
