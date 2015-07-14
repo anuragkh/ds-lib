@@ -15,7 +15,7 @@ class TextIndex {
   virtual ~TextIndex() {
   }
 
-  virtual std::vector<int64_t> search(const std::string& query) const = 0;
+  virtual void search(std::vector<int64_t>& result, const std::string& query) const = 0;
   virtual int64_t count(const std::string& query) const = 0;
   virtual bool contains(const std::string& query) const = 0;
 

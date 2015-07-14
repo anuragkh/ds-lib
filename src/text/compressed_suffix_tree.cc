@@ -20,12 +20,11 @@ dsl::CompressedSuffixTree::CompressedSuffixTree(const std::string& input,
   }
 }
 
-std::vector<int64_t> dsl::CompressedSuffixTree::search(
-    const std::string& query) const {
-  std::vector<int64_t> results;
+void dsl::CompressedSuffixTree::search(std::vector<int64_t>& results,
+                                       const std::string& query) const {
   uint64_t node = cst_->search((unsigned char *) query.c_str(), query.length());
   if (node == 0) {
-    return results;
+    return;
   }
   uint64_t leftmost_leaf = cst_->leftmost(node);
   uint64_t sa_idx = cst_->leftrank(leftmost_leaf);
@@ -34,7 +33,6 @@ std::vector<int64_t> dsl::CompressedSuffixTree::search(
   for (uint64_t i = 0; i < count; i++) {
     results.push_back(cst_->sa->lookup(sa_idx + i));
   }
-  return results;
 }
 
 int64_t dsl::CompressedSuffixTree::count(const std::string& query) const {

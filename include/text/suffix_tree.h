@@ -56,7 +56,7 @@ class SuffixTree : public TextIndex {
    * @param query The substring to be searched.
    * @return List of all locations of the substring in the original string.
    */
-  std::vector<int64_t> search(const std::string& query) const;
+  void search(std::vector<int64_t>& result, const std::string& query) const;
 
   /**
    * Count all occurrences of a substring in the original string.

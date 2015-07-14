@@ -303,13 +303,12 @@ int64_t dsl::SuffixTree::findSubtreeRoot(const std::string& query) const {
   }
 }
 
-std::vector<int64_t> dsl::SuffixTree::search(const std::string& query) const {
+void dsl::SuffixTree::search(std::vector<int64_t>& results, const std::string& query) const {
   int64_t subtree_root = findSubtreeRoot(query);
   std::stack<int64_t> stack;
-  std::vector<int64_t> values;
 
   if (subtree_root == -1) {
-    return values;
+    return;
   }
 
   // Traverse the sub tree to find the leaves. Their labels give the positions
@@ -322,7 +321,7 @@ std::vector<int64_t> dsl::SuffixTree::search(const std::string& query) const {
     if (nodes_[current_node].edges.empty()) {
       // Sanity check, if its a leaf it has a positive value.
       assert(nodes_[current_node].value > 0);
-      values.push_back(nodes_[current_node].value);
+      results.push_back(nodes_[current_node].value);
     }
     // Otherwise, put its children on the stack.
     for (auto it = nodes_[current_node].edges.begin();
@@ -330,7 +329,6 @@ std::vector<int64_t> dsl::SuffixTree::search(const std::string& query) const {
       stack.push(it->second.dst_node);
     }
   }
-  return values;
 }
 
 int64_t dsl::SuffixTree::count(const std::string& query) const {

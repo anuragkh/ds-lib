@@ -11,7 +11,7 @@ class CompressedSuffixTree : public dsl::TextIndex {
   CompressedSuffixTree();
   CompressedSuffixTree(const std::string &input, const std::string& input_path, bool construct = true);
 
-  std::vector<int64_t> search(const std::string& query) const;
+  void search(std::vector<int64_t>& results, const std::string& query) const;
   int64_t count(const std::string& query) const;
   bool contains(const std::string& query) const;
 

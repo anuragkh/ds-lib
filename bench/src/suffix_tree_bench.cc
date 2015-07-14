@@ -32,8 +32,9 @@ void dsl_bench::SuffixTreeBench::benchSearch(
   std::ofstream result_stream(result_path);
 
   for (auto query : queries) {
+    std::vector<int64_t> results;
     time_t start = get_timestamp();
-    std::vector<int64_t> results = suffix_tree_->search(query);
+    suffix_tree_->search(results, query);
     time_t end = get_timestamp();
     time_t tot = end - start;
     result_stream << results.size() << "\t" << tot << "\n";
