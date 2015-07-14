@@ -101,8 +101,11 @@ size_t dsl::SuffixArrayIndex::deserialize(std::istream& in) {
 
   in.read(reinterpret_cast<char *>(&size_), sizeof(uint64_t));
   in_size += sizeof(uint64_t);
-  in.read(reinterpret_cast<char *>(input_), size_ * sizeof(char));
+  char *input = new char[size_];
+  in.read(reinterpret_cast<char *>(input), size_ * sizeof(char));
   in_size += size_ * sizeof(char);
+
+  input_ = input;
 
   suffix_array_ = new dsl::SuffixArray();
   in_size += suffix_array_->deserialize(in);
