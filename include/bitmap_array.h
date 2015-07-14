@@ -16,6 +16,9 @@ class BitmapArray : public Bitmap {
   uint64_t at(uint64_t i);
   uint64_t operator[](uint64_t i);
 
+  size_t serialize(std::ostream& out);
+  size_t deserialize(std::istream& in);
+
   uint64_t num_elements_;
   uint8_t bit_width_;
 };

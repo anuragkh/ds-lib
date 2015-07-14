@@ -2,6 +2,13 @@
 
 #include "divsufsortxx.h"
 
+dsl::SuffixArray::SuffixArray() {
+  num_elements_ = 0;
+  bit_width_ = 0;
+  size_ = 0;
+  data_ = NULL;
+}
+
 dsl::SuffixArray::SuffixArray(const char* input_data, size_t input_size) {
   int64_t *lSA = new int64_t[input_size];
   divsufsortxx::constructSA(input_data, lSA, lSA + input_size, 256);

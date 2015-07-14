@@ -23,7 +23,7 @@ class SuffixArrayIndex : public TextIndex {
   int32_t compare(const std::string& query, uint64_t pos);
 
   SuffixArray *suffix_array_;
-  const char* input_;
+  char* input_;
   size_t size_;
 };
 

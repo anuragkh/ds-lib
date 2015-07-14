@@ -58,3 +58,31 @@ uint64_t dsl::BitmapArray::at(uint64_t i) {
 uint64_t dsl::BitmapArray::operator [](uint64_t i) {
   return at(i);
 }
+
+size_t dsl::BitmapArray::serialize(std::ostream& out) {
+  size_t out_size = 0;
+
+  out.write(reinterpret_cast<const char *>(&num_elements_), sizeof(uint64_t));
+  out_size += sizeof(uint64_t);
+
+  out.write(reinterpret_cast<const char *>(&bit_width_), sizeof(uint8_t));
+  out_size += sizeof(uint8_t);
+
+  out_size += Bitmap::serialize(out);
+
+  return out_size;
+}
+
+size_t dsl::BitmapArray::deserialize(std::istream& in) {
+  size_t in_size = 0;
+
+  in.read(reinterpret_cast<char *>(&num_elements_), sizeof(uint64_t));
+  in_size += sizeof(uint64_t);
+
+  in.read(reinterpret_cast<char *>(&bit_width_), sizeof(uint8_t));
+  in_size += sizeof(uint8_t);
+
+  in_size += Bitmap::deserialize(in);
+
+  return in_size;
+}

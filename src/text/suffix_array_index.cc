@@ -1,6 +1,7 @@
 #include "text/suffix_array_index.h"
 
 #include <math.h>
+#include <iostream>
 
 dsl::SuffixArrayIndex::SuffixArrayIndex(const char *input, size_t size,
                                         SuffixArray* suffix_array) {
@@ -79,4 +80,32 @@ int64_t dsl::SuffixArrayIndex::count(const std::string& query) {
 bool dsl::SuffixArrayIndex::contains(const std::string& query) {
   std::pair<int64_t, int64_t> range = getRange(query);
   return (range.second >= range.first);
+}
+
+size_t dsl::SuffixArrayIndex::serialize(std::ostream& out) {
+  size_t out_size = 0;
+
+  out.write(reinterpret_cast<const char *>(&size_), sizeof(uint64_t));
+  out_size += sizeof(uint64_t);
+
+  out.write(reinterpret_cast<const char *>(input_), size_ * sizeof(char));
+  out_size += size_ * sizeof(char);
+
+  out_size += suffix_array_->serialize(out);
+
+  return out_size;
+}
+
+size_t dsl::SuffixArrayIndex::deserialize(std::istream& in) {
+  size_t in_size = 0;
+
+  in.read(reinterpret_cast<char *>(&size_), sizeof(uint64_t));
+  in_size += sizeof(uint64_t);
+  in.read(reinterpret_cast<char *>(input_), size_ * sizeof(char));
+  in_size += size_ * sizeof(char);
+
+  suffix_array_ = new dsl::SuffixArray();
+  in_size += suffix_array_->deserialize(in);
+
+  return in_size;
 }
