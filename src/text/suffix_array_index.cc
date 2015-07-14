@@ -1,5 +1,7 @@
 #include "text/suffix_array_index.h"
 
+#include <math.h>
+
 dsl::SuffixArrayIndex::SuffixArrayIndex(const char *input, size_t size,
                                         SuffixArray* suffix_array) {
   suffix_array_ = suffix_array;
