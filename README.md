@@ -42,7 +42,8 @@ int main(int argc, char **argv) {
     dsl::SuffixTree suffix_tree(input);
 
     // Search for substrings
-    std::vector<int64_t> results = suffix_tree.search("ssi");
+    std::vector<int64_t> results;
+    suffix_tree.search(results, "ssi");
 
     // Display the results
     for(auto offset: results) {
