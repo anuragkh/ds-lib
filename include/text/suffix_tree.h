@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-#include "text_index.h"
+#include "text/text_index.h"
 
 namespace dsl {
 const static int64_t CURRENT_END = -1;

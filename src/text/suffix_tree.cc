@@ -1,4 +1,4 @@
-#include "suffix_tree.h"
+#include "text/suffix_tree.h"
 
 #include <iostream>
 #include <assert.h>

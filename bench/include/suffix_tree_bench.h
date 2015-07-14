@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "text/suffix_tree.h"
 #include "benchmark.h"
-#include "suffix_tree.h"
 
 namespace dsl_bench {
 

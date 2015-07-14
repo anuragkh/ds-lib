@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "suffix_tree.h"
-#include "compressed_suffix_tree.h"
+#include "text/compressed_suffix_tree.h"
+#include "text/suffix_tree.h"
 
 void print_usage(char *exec) {
   fprintf(

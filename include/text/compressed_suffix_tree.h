@@ -1,8 +1,8 @@
 #ifndef DSL_COMPRESSED_SUFFIX_TREE_H_
 #define DSL_COMPRESSED_SUFFIX_TREE_H_
 
-#include "text_index.h"
 #include "SSTree.h"
+#include "text/text_index.h"
 
 namespace dsl {
 

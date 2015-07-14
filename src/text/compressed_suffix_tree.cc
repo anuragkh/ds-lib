@@ -1,4 +1,4 @@
-#include "compressed_suffix_tree.h"
+#include "text/compressed_suffix_tree.h"
 
 dsl::CompressedSuffixTree::CompressedSuffixTree() {
   cst_ = NULL;
