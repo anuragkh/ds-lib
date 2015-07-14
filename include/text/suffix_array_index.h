@@ -7,6 +7,7 @@
 namespace dsl {
 class SuffixArrayIndex : public TextIndex {
  public:
+  SuffixArrayIndex();
   SuffixArrayIndex(const std::string& input);
   SuffixArrayIndex(const std::string& input, SuffixArray* suffix_array);
   SuffixArrayIndex(const char* input, size_t size);

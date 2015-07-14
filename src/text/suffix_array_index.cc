@@ -3,6 +3,12 @@
 #include <math.h>
 #include <iostream>
 
+dsl::SuffixArrayIndex::SuffixArrayIndex() {
+  suffix_array_ = NULL;
+  input_ = NULL;
+  size_ = 0;
+}
+
 dsl::SuffixArrayIndex::SuffixArrayIndex(const char *input, size_t size,
                                         SuffixArray* suffix_array) {
   suffix_array_ = suffix_array;
