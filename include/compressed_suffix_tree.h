@@ -1,5 +1,5 @@
-#ifndef PULL_STAR_INDEX_COMPRESSED_SUFFIX_TREE_H_
-#define PULL_STAR_INDEX_COMPRESSED_SUFFIX_TREE_H_
+#ifndef DSL_COMPRESSED_SUFFIX_TREE_H_
+#define DSL_COMPRESSED_SUFFIX_TREE_H_
 
 #include "text_index.h"
 #include "SSTree.h"
@@ -23,4 +23,4 @@ class CompressedSuffixTree : public dsl::TextIndex {
 };
 
 }
-#endif // PULL_STAR_INDEX_COMPRESSED_SUFFIX_TREE_H_
+#endif // DSL_COMPRESSED_SUFFIX_TREE_H_

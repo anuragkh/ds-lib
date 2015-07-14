@@ -12,11 +12,10 @@ class BitmapArray : public Bitmap {
   BitmapArray(uint64_t num_elements, uint8_t bit_width);
   BitmapArray(uint64_t *elements, uint64_t num_elements, uint8_t bit_width);
 
-  inline void insert(uint64_t i, uint64_t value);
-  inline uint64_t at(uint64_t i);
+  void insert(uint64_t i, uint64_t value);
+  uint64_t at(uint64_t i);
   virtual uint64_t operator[](uint64_t i) = 0;
 
- private:
   uint64_t num_elements_;
   uint8_t bit_width_;
 };
