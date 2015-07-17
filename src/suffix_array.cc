@@ -1,6 +1,7 @@
 #include "suffix_array.h"
 
 #include "divsufsortxx.h"
+#include "divsufsortxx_utility.h"
 
 dsl::SuffixArray::SuffixArray() {
   num_elements_ = 0;
