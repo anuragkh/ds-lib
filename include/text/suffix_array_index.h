@@ -19,13 +19,42 @@ class SuffixArrayIndex : public TextIndex {
 
   size_t serialize(std::ostream& out);
   size_t deserialize(std::istream& in);
- private:
-  std::pair<int64_t, int64_t> getRange(const std::string& query) const;
+
+ protected:
+  virtual std::pair<int64_t, int64_t> getRange(const std::string& query) const;
   int32_t compare(const std::string& query, uint64_t pos) const;
 
   SuffixArray *suffix_array_;
   const char* input_;
   size_t size_;
+};
+
+class AugmentedSuffixArrayIndex : public SuffixArrayIndex {
+ public:
+  AugmentedSuffixArrayIndex();
+  AugmentedSuffixArrayIndex(const std::string& input);
+  AugmentedSuffixArrayIndex(const std::string& input, SuffixArray* suffix_array,
+                            BitmapArray* lcp_l, BitmapArray* lcp_r);
+  AugmentedSuffixArrayIndex(const char* input, size_t size);
+  AugmentedSuffixArrayIndex(const char* input, size_t size,
+                            SuffixArray* suffix_array, BitmapArray* lcp_l,
+                            BitmapArray* lcp_r);
+
+  size_t serialize(std::ostream& out);
+  size_t deserialize(std::istream& in);
+
+ private:
+  void constructLcp();
+  uint64_t precomputeLcp(uint64_t *lcp, uint64_t *lcp_l, uint64_t *lcp_r,
+                         uint64_t l, uint64_t r);
+  std::pair<int64_t, int64_t> getRange(const std::string& query) const;
+
+  uint64_t lcpStr(const std::string& query, uint64_t i) const;
+  int64_t getFirstOccurrence(const std::string& query) const;
+
+  BitmapArray *lcp_l_;
+  BitmapArray *lcp_r_;
+
 };
 
 }

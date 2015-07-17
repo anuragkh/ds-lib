@@ -6,6 +6,7 @@
 
 #include "text/compressed_suffix_tree.h"
 #include "text/suffix_tree.h"
+#include "text/suffix_array_index.h"
 
 void print_usage(char *exec) {
   fprintf(
@@ -55,6 +56,18 @@ int main(int argc, char **argv) {
   } else if (data_structure == 1) {
     fprintf(stderr, "Constructing compressed suffix tree...\n");
     dsl::CompressedSuffixTree compressed_suffix_tree(input_text, input_file);
+  } else if (data_structure == 2) {
+    fprintf(stderr, "Constructing suffix array index...\n");
+    dsl::SuffixArrayIndex suffix_array(input_text);
+    std::ofstream out(input_file + ".sa");
+    suffix_array.serialize(out);
+    out.close();
+  } else if (data_structure == 3) {
+    fprintf(stderr, "Constructing augmented suffix array index...\n");
+    dsl::AugmentedSuffixArrayIndex augmented_suffix_array(input_text);
+    std::ofstream out(input_file + ".asa");
+    augmented_suffix_array.serialize(out);
+    out.close();
   } else {
     fprintf(stderr, "Data structure %d not supported yet.\n", data_structure);
     exit(0);
