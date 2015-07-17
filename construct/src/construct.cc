@@ -58,13 +58,17 @@ int main(int argc, char **argv) {
     dsl::CompressedSuffixTree compressed_suffix_tree(input_text, input_file);
   } else if (data_structure == 2) {
     fprintf(stderr, "Constructing suffix array index...\n");
-    dsl::SuffixArrayIndex suffix_array(input_text);
+    const char* data = (input_text + (char)1).c_str();
+    size_t size = input_text.length() + 1;
+    dsl::SuffixArrayIndex suffix_array(data, size);
     std::ofstream out(input_file + ".sa");
     suffix_array.serialize(out);
     out.close();
   } else if (data_structure == 3) {
     fprintf(stderr, "Constructing augmented suffix array index...\n");
-    dsl::AugmentedSuffixArrayIndex augmented_suffix_array(input_text);
+    const char* data = (input_text + (char)1).c_str();
+    size_t size = input_text.length() + 1;
+    dsl::AugmentedSuffixArrayIndex augmented_suffix_array(data, size);
     std::ofstream out(input_file + ".asa");
     augmented_suffix_array.serialize(out);
     out.close();
