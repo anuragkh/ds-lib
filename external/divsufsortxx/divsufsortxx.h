@@ -31,7 +31,7 @@
 
 #include <algorithm>
 #include <stack>
-
+#include <stddef.h>
 
 namespace divsufsortxx {
 
