@@ -13,7 +13,9 @@ dsl::SuffixArray::SuffixArray(const char* input_data, size_t input_size)
     : BitmapArray(input_size, Utils::int_log_2(input_size + 1)) {
 
   int64_t *lSA = new int64_t[input_size];
-  divsufsortxx::constructSA(input_data, input_data + input_size, lSA, lSA + input_size, 256);
+  divsufsortxx::constructSA((uint8_t *) input_data,
+                            (uint8_t *) (input_data + input_size), lSA,
+                            lSA + input_size, 256);
 
   for (uint64_t i = 0; i < num_elements_; i++) {
     insert(i, lSA[i]);
