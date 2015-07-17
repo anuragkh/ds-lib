@@ -12,12 +12,15 @@ dsl::Bitmap::Bitmap() {
 
 dsl::Bitmap::Bitmap(uint64_t num_bits) {
   assert(num_bits > 0);
-  data_ = new uint64_t[BITS2BLOCKS(num_bits)];
+  data_ = new uint64_t[BITS2BLOCKS(num_bits)]();
   size_ = num_bits;
 }
 
 dsl::Bitmap::~Bitmap() {
-  delete data_;
+  if(data_) {
+    delete[] data_;
+    data_ = NULL;
+  }
 }
 
 void dsl::Bitmap::clear() {
