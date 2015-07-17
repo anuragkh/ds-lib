@@ -1,6 +1,6 @@
 /*
  * divsufsortxx.h
- * Copyright (c) 2003-2007 Yuta Mori All Rights Reserved.
+ * Copyright (c) 2003-2008 Yuta Mori All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,7 +24,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// r1
+// r3
 
 #ifndef _DIVSUFSORTXX_H_
 #define _DIVSUFSORTXX_H_
@@ -48,14 +48,13 @@ typedef typename std::iterator_traits<ISAIterator_type>::value_type value_type;
   pos_type t;
   value_type v, x;
 
-  /* insertion sort */
   for(a = first + 1; a < last; ++a) {
-    for(v = ISAd[t = *a], b = a - 1; v < (x = ISAd[*b]);) {
-      do { *(b + 1) = *b; } while((first <= --b) && (*b < 0));
-      if(b < first) { break; }
+    for(v = ISAd[t = *a], b = a; v < (x = ISAd[*(b - 1)]);) {
+      do { *b = *(b - 1); } while((first < --b) && (*(b - 1) < 0));
+      if(b <= first) { break; }
     }
-    if(v == x) { *b = ~*b; }
-    *(b + 1) = t;
+    if(v == x) { *(b - 1) = ~*(b - 1); }
+    *b = t;
   }
 }
 
@@ -145,9 +144,9 @@ lg(numeric_type n) {
   return lgsize + log2table[n];
 }
 
-template<typename Iterator_type>
+template<typename Iterator1_type, typename Iterator2_type>
 void
-vecswap(Iterator_type first1, Iterator_type last1, Iterator_type first2) {
+vecswap(Iterator1_type first1, Iterator1_type last1, Iterator2_type first2) {
   for(; first1 != last1; ++first1, ++first2) {
     std::iter_swap(first1, first2);
   }
@@ -221,7 +220,7 @@ partition(const StringIterator_type Td,
   SAIterator_type a, b, c, d;
   typename std::iterator_traits<StringIterator_type>::value_type x = 0;
 
-  for(b = first2; (++b < last) && ((x = Td[*b]) == v);) { }
+  for(b = first2; (b < last) && ((x = Td[*b]) == v); ++b) { }
   if(((a = b) < last) && (x < v)) {
     for(; (++b < last) && ((x = Td[*b]) <= v);) {
       if(x == v) { std::iter_swap(b, a++); }
@@ -244,10 +243,9 @@ partition(const StringIterator_type Td,
   }
 
   if(a <= d) {
-    c = b - 1;
     vecswap(b - std::min(a - first1, b - a), b, first1);
-    vecswap(last - std::min(d - c, last - d - 1), last, b);
-    mfirst = first1 + (b - a), mlast = last - (d - c);
+    vecswap(last - std::min(d + 1 - b, last - d - 1), last, b);
+    mfirst = first1 + (b - a), mlast = last - (d + 1 - b);
     return true;
   }
   mfirst = first1, mlast = last;
@@ -316,21 +314,39 @@ compare(StringIterator_type T,
 }
 
 template<typename StringIterator_type, typename SAIterator_type>
+int
+compare_last(StringIterator_type T,
+             const SAIterator_type p1, const SAIterator_type p2,
+             typename std::iterator_traits<SAIterator_type>::value_type depth,
+             typename std::iterator_traits<SAIterator_type>::value_type size) {
+  StringIterator_type U1 = T + depth + *p1,
+                      U2 = T + depth + *p2,
+                      U1n = T + size,
+                      U2n = T + *(p2 + 1) + 2;
+  for(; (U1 < U1n) && (U2 < U2n) && (*U1 == *U2); ++U1, ++U2) { }
+
+  return U1 < U1n ?
+        (U2 < U2n ? (*U2 < *U1) * 2 - 1 : 1) :
+//        (U2 < U2n ? *U1 - *U2 : 1) :
+        (U2 < U2n ? -1 : 0);
+}
+
+template<typename StringIterator_type, typename SAIterator_type>
 void
 insertionsort(StringIterator_type T, const SAIterator_type PA,
               SAIterator_type first, SAIterator_type last,
               typename std::iterator_traits<SAIterator_type>::value_type depth) {
-  SAIterator_type i, j;
+  SAIterator_type a, b;
   typename std::iterator_traits<SAIterator_type>::value_type t;
   int r;
 
-  for(i = last - 2; first <= i; --i) {
-    for(t = *i, j = i + 1; 0 < (r = compare(T, PA + t, PA + *j, depth));) {
-      do { *(j - 1) = *j; } while((++j < last) && (*j < 0));
-      if(last <= j) { break; }
+  for(a = last - 1; first < a; --a) {
+    for(t = *(a - 1), b = a; 0 < (r = compare(T, PA + t, PA + *b, depth));) {
+      do { *(b - 1) = *b; } while((++b < last) && (*b < 0));
+      if(last <= b) { break; }
     }
-    if(r == 0) { *j = ~*j; }
-    *(j - 1) = t;
+    if(r == 0) { *b = ~*b; }
+    *(b - 1) = t;
   }
 }
 
@@ -368,9 +384,9 @@ partition(const SAIterator_type PA,
           SAIterator_type first, SAIterator_type last,
           typename std::iterator_traits<SAIterator_type>::value_type depth) {
   SAIterator_type a, b;
-  for(a = first - 1, b = last;;) {
-    for(; (++a < b) && ((PA[*a] + depth) >= (PA[*a + 1] + 1));) { *a = ~*a; }
-    for(; (a < --b) && ((PA[*b] + depth) <  (PA[*b + 1] + 1));) { }
+  for(a = first, b = last - 1;; ++a, --b) {
+    for(; (a <= b) && ((PA[*a] + depth) >= (PA[*a + 1] + 1)); ++a) { *a = ~*a; }
+    for(; (a < b) && ((PA[*b] + depth) <  (PA[*b + 1] + 1)); --b) { }
     if(b <= a) { break; }
     std::iter_swap(b, a);
     *a = ~*a;
@@ -384,7 +400,6 @@ void
 mintrosort(stack_type &stack, const StringIterator_type T, const SAIterator_type PA,
            SAIterator_type first, SAIterator_type last,
            typename std::iterator_traits<SAIterator_type>::value_type depth) {
-typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
 typedef typename std::iterator_traits<StringIterator_type>::value_type value_type;
 typedef substring_wrapper<StringIterator_type, SAIterator_type> wrapper_type;
 typedef typename stack_type::value_type stackinfo_type;
@@ -435,7 +450,7 @@ typedef typename stack_type::value_type stackinfo_type;
     /* partition */
     a = helper::pivot(wrapper_type(Td, PA), first, last);
     std::iter_swap(first, a);
-    if(helper::partition(wrapper_type(Td, PA), first, first, last, a, c, Td[PA[*first]]) != false) {
+    if(helper::partition(wrapper_type(Td, PA), first, first + 1, last, a, c, Td[PA[*first]]) != false) {
       b = (Td[PA[*a]] <= Td[PA[*a] - 1]) ? a : partition(PA, a, c, depth);
 
       if((a - first) <= (last - c)) {
@@ -475,19 +490,18 @@ typedef typename stack_type::value_type stackinfo_type;
       }
       depth += 1;
     }
-
   }
 }
 
 /* Merge-forward with internal buffer. */
-template<typename StringIterator_type, typename SAIterator_type>
+template<typename StringIterator_type, typename SAIterator_type, typename BufIterator_type>
 void
 merge_forward(const StringIterator_type T,
-              const SAIterator_type PA, SAIterator_type buf,
+              const SAIterator_type PA, BufIterator_type buf,
               SAIterator_type first, SAIterator_type middle, SAIterator_type last,
               typename std::iterator_traits<SAIterator_type>::value_type depth) {
   SAIterator_type i, k;
-  SAIterator_type j, bufend;
+  BufIterator_type j, bufend;
   typename std::iterator_traits<SAIterator_type>::value_type t;
   int r;
 
@@ -530,15 +544,15 @@ merge_forward(const StringIterator_type T,
 }
 
 /* Merge-backward with internal buffer. */
-template<typename StringIterator_type, typename SAIterator_type>
+template<typename StringIterator_type, typename SAIterator_type, typename BufIterator_type>
 void
 merge_backward(const StringIterator_type T,
-               const SAIterator_type PA, SAIterator_type buf,
+               const SAIterator_type PA, BufIterator_type buf,
                SAIterator_type first, SAIterator_type middle, SAIterator_type last,
                typename std::iterator_traits<SAIterator_type>::value_type depth) {
   SAIterator_type p1, p2;
   SAIterator_type i, k;
-  SAIterator_type j, bufend;
+  BufIterator_type j, bufend;
   typename std::iterator_traits<SAIterator_type>::value_type t;
   int r, x;
 
@@ -554,50 +568,52 @@ merge_backward(const StringIterator_type T,
 
     r = compare(T, p1, p2, depth);
     if(r > 0) {
-      if(x & 1) { do { *i-- = *j; *j-- = *i; } while(*j < 0); }
-      *i-- = *j; *j-- = *i;
-      if(j < buf) { *buf = t; return; }
+      if(x & 1) { do { *i-- = *j; *j-- = *i; } while(*j < 0); x ^= 1; }
+      *i-- = *j; *j = *i;
+      if(j <= buf) { *buf = t; return; }
 
-      if(*j < 0) { x |=  1; p1 = PA + ~*j; }
-      else       { x &= ~1; p1 = PA +  *j; }
+      if(*--j < 0) { x |=  1; p1 = PA + ~*j; }
+      else         {          p1 = PA +  *j; }
     } else if(r < 0) {
-      if(x & 2) { do { *i-- = *k; *k-- = *i; } while(*k < 0); }
-      *i-- = *k; *k-- = *i;
-      if(k < first) {
-        do { *i-- = *j; *j-- = *i; } while(buf <= j);
-        *buf = t;
+      if(x & 2) { do { *i-- = *k; *k-- = *i; } while(*k < 0); x ^= 2; }
+      *i-- = *k; *k = *i;
+      if(k <= first) {
+        while(buf < j) { *i-- = *j; *j-- = *i; }
+        *i = *j, *buf = t;
         return;
       }
 
-      if(*k < 0) { x |=  2; p2 = PA + ~*k; }
-      else       { x &= ~2; p2 = PA +  *k; }
+      if(*--k < 0) { x |=  2; p2 = PA + ~*k; }
+      else         {          p2 = PA +  *k; }
     } else {
-      if(x & 1) { do { *i-- = *j; *j-- = *i; } while(*j < 0); }
-      *i-- = ~*j; *j-- = *i;
-      if(j < buf) { *buf = t; return; }
+      if(x & 1) { do { *i-- = *j; *j-- = *i; } while(*j < 0); x ^= 1; }
+      *i-- = ~*j; *j = *i;
+      if(j <= buf) { *buf = t; return; }
+      --j;
 
-      if(x & 2) { do { *i-- = *k; *k-- = *i; } while(*k < 0); }
-      *i-- = *k; *k-- = *i;
-      if(k < first) {
-        while(buf <= j) { *i-- = *j; *j-- = *i; }
-        *buf = t;
+      if(x & 2) { do { *i-- = *k; *k-- = *i; } while(*k < 0); x ^= 2; }
+      *i-- = *k; *k = *i;
+      if(k <= first) {
+        while(buf < j) { *i-- = *j; *j-- = *i; }
+        *i = *j, *buf = t;
         return;
       }
+      --k;
 
       if(*j < 0) { x |=  1; p1 = PA + ~*j; }
-      else       { x &= ~1; p1 = PA +  *j; }
+      else       {          p1 = PA +  *j; }
       if(*k < 0) { x |=  2; p2 = PA + ~*k; }
-      else       { x &= ~2; p2 = PA +  *k; }
+      else       {          p2 = PA +  *k; }
     }
   }
 }
 
 /* Faster merge (based on divide and conquer technique). */
-template<typename stack_type, typename StringIterator_type, typename SAIterator_type>
+template<typename stack_type, typename StringIterator_type, typename SAIterator_type, typename BufIterator_type>
 void
 merge(stack_type &stack, const StringIterator_type T, const SAIterator_type PA,
       SAIterator_type first, SAIterator_type middle, SAIterator_type last,
-      SAIterator_type buf, typename std::iterator_traits<SAIterator_type>::value_type bufsize,
+      BufIterator_type buf, typename std::iterator_traits<SAIterator_type>::value_type bufsize,
       typename std::iterator_traits<SAIterator_type>::value_type depth) {
 typedef typename std::iterator_traits<SAIterator_type>::difference_type difference_type;
 typedef typename stack_type::value_type stackinfo_type;
@@ -676,12 +692,13 @@ typedef typename stack_type::value_type stackinfo_type;
 #undef MERGE_CHECK
 }
 
-template<typename StringIterator_type, typename SAIterator_type>
+template<typename StringIterator_type, typename SAIterator_type, typename BufIterator_type>
 void
 sort(const StringIterator_type T, const SAIterator_type PA,
      SAIterator_type first, SAIterator_type last,
-     SAIterator_type buf, typename std::iterator_traits<SAIterator_type>::value_type bufsize,
+     BufIterator_type buf, typename std::iterator_traits<SAIterator_type>::value_type bufsize,
      typename std::iterator_traits<SAIterator_type>::value_type depth,
+     typename std::iterator_traits<SAIterator_type>::value_type size,
      bool lastsuffix, int blocksize = 1024) {
 typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
   std::stack<helper::stackinfo4<SAIterator_type, SAIterator_type, pos_type, int> > stack1;
@@ -692,14 +709,18 @@ typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
   pos_type i, j, k, curbufsize;
 
   if(lastsuffix != false) { ++first; }
-
-  for(a = first, i = 0; (a + blocksize) < last; a += blocksize, ++i) {
+  for(a = first, i = 0; blocksize < (last - a); a += blocksize, ++i) {
     mintrosort(stack1, T, PA, a, a + blocksize, depth);
     curbuf = a + blocksize;
     curbufsize = last - (a + blocksize);
-    if(curbufsize <= bufsize) { curbufsize = bufsize, curbuf = buf; }
-    for(b = a, k = blocksize, j = i; j & 1; b -= k, k <<= 1, j >>= 1) {
-      merge(stack2, T, PA, b - k, b, b + k, curbuf, curbufsize, depth);
+    if(bufsize <= curbufsize) {
+      for(b = a, k = blocksize, j = i; j & 1; b -= k, k <<= 1, j >>= 1) {
+        merge(stack2, T, PA, b - k, b, b + k, curbuf, curbufsize, depth);
+      }
+    } else {
+      for(b = a, k = blocksize, j = i; j & 1; b -= k, k <<= 1, j >>= 1) {
+        merge(stack2, T, PA, b - k, b, b + k, buf, bufsize, depth);
+      }
     }
   }
   mintrosort(stack1, T, PA, a, last, depth);
@@ -713,13 +734,14 @@ typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
   if(lastsuffix != false) {
     /* Insert last type B* suffix. */
     for(a = first, i = *(first - 1);
-        (a < last) && ((*a < 0) || (0 < compare(T, PA + i, PA + *a, depth)));
+        (a < last) && ((*a < 0) || (0 < compare_last(T, PA + i, PA + *a, depth, size)));
         ++a) {
       *(a - 1) = *a;
     }
     *(a - 1) = i;
   }
 }
+
 
 } /* namespace substring */
 
@@ -772,8 +794,8 @@ typedef typename stack_type::value_type stackinfo_type;
 
     if(limit-- == 0) {
       helper::heapsort(ISAd, first, last - first);
-      for(a = last - 2, v = ISAd[*(last - 1)]; first <= a; --a) {
-        if((x = ISAd[*a]) == v) { *a = ~*a; }
+      for(a = last - 1, v = ISAd[*a]; first < a;) {
+        if((x = ISAd[*--a]) == v) { *a = ~*a; }
         else { v = x; }
       }
       updategroup(ISA, SA, first, last);
@@ -783,7 +805,7 @@ typedef typename stack_type::value_type stackinfo_type;
 
     a = helper::pivot(ISAd, first, last);
     std::iter_swap(first, a);
-    if(helper::partition(ISAd, first, first, last, a, b, ISAd[*first]) != false) {
+    if(helper::partition(ISAd, first, first + 1, last, a, b, ISAd[*first]) != false) {
 
       /* update ranks */
       for(c = first, v = a - SA - 1; c < a; ++c) { ISA[*c] = v; }
@@ -866,7 +888,7 @@ typedef typename stack_type::value_type stackinfo_type;
     if(limit < 0) {
       if(limit == -1) {
         /* tandem repeat partition */
-        helper::partition(ISAd - 1, first, first - 1, last, a, b, last - SA - 1);
+        helper::partition(ISAd - 1, first, first, last, a, b, last - SA - 1);
 
         /* update ranks */
         if(a < last) {
@@ -877,7 +899,7 @@ typedef typename stack_type::value_type stackinfo_type;
         }
 
         /* push */
-        STACK_PUSH4(0, a, b, 0);
+        STACK_PUSH4(ISAd, a, b, 0);
         STACK_PUSH4(ISAd - 1, first, last, -2);
         if((a - first) <= (last - b)) {
           if(first < a) {
@@ -895,13 +917,13 @@ typedef typename stack_type::value_type stackinfo_type;
         a = temp.m_b, b = temp.m_c;
         t = ISAd - ISA;
         v = b - SA - 1;
-        for(c = first, d = a - 1; c <= d; ++c) {
+        for(c = first, d = a; c < d; ++c) {
           if((0 <= (s = *c - t)) && (ISA[s] == v)) {
-            *++d = s;
             ISA[s] = d - SA;
+            *d++ = s;
           }
         }
-        for(c = last - 1, e = d + 1, d = b; e < d; --c) {
+        for(c = last - 1, e = d, d = b; e < d; --c) {
           if((0 <= (s = *c - t)) && (ISA[s] == v)) {
             *--d = s;
             ISA[s] = d - SA;
@@ -958,8 +980,8 @@ typedef typename stack_type::value_type stackinfo_type;
 
     if(limit-- == 0) {
       helper::heapsort(ISAd, first, last - first);
-      for(a = last - 2, v = ISAd[*(last - 1)]; first <= a; --a) {
-        if((x = ISAd[*a]) == v) { *a = ~*a; }
+      for(a = last - 1, v = ISAd[*a]; first < a;) {
+        if((x = ISAd[*--a]) == v) { *a = ~*a; }
         else { v = x; }
       }
       limit = -3;
@@ -968,8 +990,7 @@ typedef typename stack_type::value_type stackinfo_type;
 
     a = helper::pivot(ISAd, first, last);
     std::iter_swap(first, a);
-    if(helper::partition(ISAd, first, first, last, a, b, ISAd[*first]) != false) {
-
+    if(helper::partition(ISAd, first, first + 1, last, a, b, ISAd[*first]) != false) {
       next = (ISA[*a] == ISAd[*a]) ? -1 : helper::lg(b - a);
 
       /* update ranks */
@@ -1067,6 +1088,7 @@ typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
   return true;
 }
 
+
 } /* namespace tandemrepeat */
 
 
@@ -1076,20 +1098,21 @@ typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
 #undef STACK_PUSH4
 
 
-static const int EXTRA_SPACE = 257;
+static const int EXTRA_SPACE = 0;
 
 namespace core {
 #define BUCKET_A(c0) bucket_A[(c0)]
 #define BUCKET_B(c0, c1) (bucket_B[((alphabetsize_type)(c1)) * alphabetsize + (alphabetsize_type)(c0)])
 #define BUCKET_BSTAR(c0, c1) (bucket_B[((alphabetsize_type)(c0)) * alphabetsize + (alphabetsize_type)(c1)])
 
+static const int MERGE_BUFSIZE = 256;
+
 /* Sorts suffixes of type B*. */
 template<typename StringIterator_type, typename SAIterator_type, typename pos_type, typename alphabetsize_type>
 pos_type
 sort_typeBstar(const StringIterator_type T, SAIterator_type SA,
                pos_type *bucket_A, pos_type *bucket_B,
-               pos_type n, alphabetsize_type alphabetsize) {
-typedef typename std::iterator_traits<StringIterator_type>::value_type value_type;
+               pos_type n, pos_type SAsize, alphabetsize_type alphabetsize) {
   pos_type i, j, k, t, m, bufsize;
   alphabetsize_type c0, c1;
 
@@ -1100,7 +1123,7 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
   /* Count the number of occurrences of the first one or two characters of each
      type A, B and B* suffix. Moreover, store the beginning position of all
      type B* suffixes into the array SA. */
-  for(i = n - 1, m = n; 0 <= i;) {
+  for(i = n - 1, m = SAsize; 0 <= i;) {
     /* type A suffix. */
     do { ++BUCKET_A(T[i]); } while((0 <= --i) && (T[i] >= T[i + 1]));
     if(0 <= i) {
@@ -1113,7 +1136,7 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
       }
     }
   }
-  m = n - m;
+  m = SAsize - m;
 
   /* Calculate the index of start/end point of each bucket. */
   for(c0 = 0, i = -1, j = 0; c0 < alphabetsize; ++c0) {
@@ -1129,9 +1152,7 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
 
   if(0 < m) {
     /* Sort the type B* suffixes by their first two characters. */
-    SAIterator_type PAb = SA + m, ISAb = SA + m;
-    for(i = 0, j = n - m; i < m; ++i, ++j) { PAb[i] = SA[j]; }
-    PAb[m] = n - 2; /* for sentinel. */
+    SAIterator_type PAb = SA + SAsize - m, ISAb = SA + m;
     for(i = m - 2; 0 <= i; --i) {
       t = PAb[i], c0 = T[t], c1 = T[t + 1];
       SA[--BUCKET_BSTAR(c0, c1)] = i;
@@ -1140,15 +1161,35 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
     SA[--BUCKET_BSTAR(c0, c1)] = m - 1;
 
     /* Sort the type B* substrings using sssort. */
-    SAIterator_type buf = PAb + m + 1;
-    bufsize = n + EXTRA_SPACE - 1 - 2 * m; /* (SA + n + EXTRA_SPACE) - buf */
-    for(c0 = alphabetsize - 1, j = m; 0 < j; --c0) {
-      for(c1 = alphabetsize - 1; c0 < c1; j = i, --c1) {
-        i = BUCKET_BSTAR(c0, c1);
-        if(1 < (j - i)) {
-          substring::sort(T, PAb, SA + i, SA + j, buf, bufsize, 2, *(SA + i) == (m - 1));
+    bufsize = SAsize - 2 * m;
+    if(MERGE_BUFSIZE < bufsize) {
+      SAIterator_type buf = SA + m;
+      for(c0 = alphabetsize - 1, j = m; 0 < j; --c0) {
+        for(c1 = alphabetsize - 1; c0 < c1; j = i, --c1) {
+          i = BUCKET_BSTAR(c0, c1);
+          if(1 < (j - i)) {
+            substring::sort(T, PAb, SA + i, SA + j, buf, bufsize, 2, n, *(SA + i) == (m - 1));
+          }
         }
       }
+    } else {
+      pos_type *lbuf = NULL;
+      int err = 0;
+      try {
+        lbuf = new pos_type[MERGE_BUFSIZE]; if(lbuf == NULL) { throw; }
+        for(c0 = alphabetsize - 1, j = m; 0 < j; --c0) {
+          for(c1 = alphabetsize - 1; c0 < c1; j = i, --c1) {
+            i = BUCKET_BSTAR(c0, c1);
+            if(1 < (j - i)) {
+              substring::sort(T, PAb, SA + i, SA + j, lbuf, MERGE_BUFSIZE, 2, n, *(SA + i) == (m - 1));
+            }
+          }
+        }
+      } catch(...) {
+        err = -1;
+      }
+      delete[] lbuf;
+      if(err != 0) { throw; }
     }
 
     /* Compute ranks of type B* substrings. */
@@ -1207,8 +1248,7 @@ void
 constructSA_from_typeBstar(const StringIterator_type T, SAIterator_type SA,
                            pos_type *bucket_A, pos_type *bucket_B,
                            pos_type n, pos_type m, alphabetsize_type alphabetsize) {
-typedef typename std::iterator_traits<StringIterator_type>::value_type value_type;
-  SAIterator_type i, j, t;
+  SAIterator_type i, j, t = SA;
   pos_type s;
   alphabetsize_type c0, c1, c2;
 
@@ -1220,17 +1260,16 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
     for(c1 = alphabetsize - 2; 0 <= c1; --c1) {
       /* Scan the suffix array from right to left. */
       for(i = SA + BUCKET_BSTAR(c1, c1 + 1),
-          j = SA + BUCKET_A(c1 + 1),
-          t = NULL, c2 = -1;
-          i <= j;
-          --j) {
-        if(0 <= (s = *j)) {
+          j = SA + (BUCKET_A(c1 + 1) + 1),
+          c2 = -1;
+          i < j;) {
+        if(0 <= (s = *--j)) {
           if((0 <= --s) && ((c0 = T[s]) <= c1)) {
             *j = ~(s + 1);
             if((0 < s) && (T[s - 1] > c0)) { s = ~s; }
             if(c2 == c0) { *--t = s; }
             else {
-              if(t != NULL) { BUCKET_B(c2, c1) = t - SA; }
+              if(0 <= c2) { BUCKET_B(c2, c1) = t - SA; }
               *(t = SA + BUCKET_B(c2 = c0, c1) - 1) = s;
             }
           }
@@ -1243,7 +1282,7 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
 
   /* Construct the suffix array by using
      the sorted order of type B suffixes. */
-  *(t = SA + BUCKET_A(c2 = T[n - 1]) + 1) = n - 1;
+  *(t = SA + (BUCKET_A(c2 = T[n - 1]) + 1)) = n - 1;
   /* Scan the suffix array from left to right. */
   for(i = SA, j = SA + n; i < j; ++i) {
     if(0 <= (s = *i)) {
@@ -1252,7 +1291,7 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
         if(c0 == c2) { *++t = s; }
         else {
           BUCKET_A(c2) = t - SA;
-          *(t = SA + BUCKET_A(c2 = c0) + 1) = s;
+          *(t = SA + (BUCKET_A(c2 = c0) + 1)) = s;
         }
       }
     } else {
@@ -1269,8 +1308,7 @@ SAIterator_type
 constructBWT_from_typeBstar(const StringIterator_type T, SAIterator_type SA,
                             pos_type *bucket_A, pos_type *bucket_B,
                             pos_type n, pos_type m, alphabetsize_type alphabetsize) {
-typedef typename std::iterator_traits<StringIterator_type>::value_type value_type;
-  SAIterator_type i, j, t, orig;
+  SAIterator_type i, j, t = SA, orig;
   pos_type s;
   alphabetsize_type c0, c1, c2;
 
@@ -1279,18 +1317,19 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
   if(0 < m) {
     /* Construct the sorted order of type B suffixes by using
        the sorted order of type B* suffixes. */
-    for(c1 = alphabetsize - 1; 0 <= c1; --c1) {
+    for(c1 = alphabetsize - 2; 0 <= c1; --c1) {
       /* Scan the suffix array from right to left. */
-      for(i = TYPEB_START(c1), j = TYPEB_END(c1), t = NULL, c2 = -1;
-          i <= j;
-          --j) {
-        if(0 <= (s = *j)) {
+      for(i = SA + BUCKET_BSTAR(c1, c1 + 1),
+          j = SA + (BUCKET_A(c1 + 1) + 1),
+          c2 = -1;
+          i < j;) {
+        if(0 <= (s = *--j)) {
           if((0 <= --s) && ((c0 = T[s]) <= c1)) {
             *j = ~((pos_type)c0);
             if((0 < s) && (T[s - 1] > c0)) { s = ~s; }
             if(c0 == c2) { *--t = s; }
             else {
-              if(t != NULL) { BUCKET_B(c2, c1) = t - SA; }
+              if(0 <= c2) { BUCKET_B(c2, c1) = t - SA; }
               *(t = SA + BUCKET_B(c2 = c0, c1) - 1) = s;
             }
           }
@@ -1305,9 +1344,9 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
      the sorted order of type B suffixes. */
   c0 = T[s = n - 1];
   if(T[s - 1] < c0) { s = ~((pos_type)T[s - 1]); }
-  *(t = SA + BUCKET_A(c2 = c0) + 1) = s;
+  *(t = SA + (BUCKET_A(c2 = c0) + 1)) = s;
   /* Scan the suffix array from left to right. */
-  for(i = SA, j = SA + n, orig = SA - 1; i < j; ++i) {
+  for(i = SA, j = SA + n, orig = SA; i < j; ++i) {
     if(0 <= (s = *i)) {
       if((0 <= --s) && ((c0 = T[s]) >= T[s + 1])) {
         *i = c0;
@@ -1315,7 +1354,7 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
         if(c0 == c2) { *++t = s; }
         else {
           BUCKET_A(c2) = t - SA;
-          *(t = SA + BUCKET_A(c2 = c0) + 1) = s;
+          *(t = SA + (BUCKET_A(c2 = c0) + 1)) = s;
         }
       } else if(s < 0) { orig = i; }
     } else {
@@ -1336,24 +1375,37 @@ typedef typename std::iterator_traits<StringIterator_type>::value_type value_typ
 
 /*---------------------------------------------------------------------------*/
 
+
+/**
+ * Constructs the suffix array of a given string.
+ *
+ * @param T An input string iterator.
+ * @param T_last An input string iterator.
+ * @param SA An output iterator.
+ * @param SA_last An output iterator.
+ * @param alphabetsize
+ * @return 0 if no error occurred, -1 or -2 otherwise.
+ */
 template<typename StringIterator_type, typename SAIterator_type, typename alphabetsize_type>
 int
-constructSA(const StringIterator_type T, SAIterator_type first, SAIterator_type last, alphabetsize_type alphabetsize = 256) {
+constructSA(const StringIterator_type T, const StringIterator_type T_last,
+            SAIterator_type SA, SAIterator_type SA_last,
+            alphabetsize_type alphabetsize = 256) {
 typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
   pos_type *bucket_A = NULL, *bucket_B = NULL;
-  pos_type n = last - first, m;
+  pos_type n = T_last - T, m = SA_last - SA;
   int err = 0;
 
   /* Check arguments. */
-  if(n < 0) { return -1; }
+  if((n < 0) || (m < n)) { return -1; }
   else if(n == 0) { return 0; }
-  else if(n == 1) { *first = 0; return 0; }
+  else if(n == 1) { *SA = 0; return 0; }
 
   try {
     bucket_A = new pos_type[alphabetsize]; if(bucket_A == NULL) { throw; }
     bucket_B = new pos_type[alphabetsize * alphabetsize]; if(bucket_B == NULL) { throw; }
-    m = core::sort_typeBstar(T, first, bucket_A, bucket_B, n, alphabetsize);
-    core::constructSA_from_typeBstar(T, first, bucket_A, bucket_B, n, m, alphabetsize);
+    m = core::sort_typeBstar(T, SA, bucket_A, bucket_B, n, m, alphabetsize);
+    core::constructSA_from_typeBstar(T, SA, bucket_A, bucket_B, n, m, alphabetsize);
   } catch(...) {
     err = -2;
   }
@@ -1365,33 +1417,62 @@ typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
 }
 
 template<typename StringIterator_type, typename SAIterator_type, typename alphabetsize_type>
+int
+constructSA(const StringIterator_type T, SAIterator_type SA,
+            typename std::iterator_traits<SAIterator_type>::value_type n,
+            alphabetsize_type alphabetsize = 256) {
+  return constructSA(T, T + n, SA, SA + n, alphabetsize);
+}
+
+/**
+ * Constructs the burrows-wheeler transformed string of a given string.
+ *
+ * @param T An input string iterator.
+ * @param T_last An input string iterator.
+ * @param U An output string iterator.
+ * @param U_last An output string iterator.
+ * @param SA A temporary iterator.
+ * @param SA_last A temporary iterator.
+ * @param alphabetsize
+ * @return 0 if no error occurred, -1 or -2 otherwise.
+ */
+template<typename StringIterator1_type, typename StringIterator2_type,
+         typename SAIterator_type, typename alphabetsize_type>
 typename std::iterator_traits<SAIterator_type>::value_type
-constructBWT(const StringIterator_type T,
-             StringIterator_type U,
-             SAIterator_type first,
-             SAIterator_type last,
+constructBWT(const StringIterator1_type T, const StringIterator1_type T_last,
+             StringIterator2_type U, StringIterator2_type U_last,
+             SAIterator_type SA, SAIterator_type SA_last,
              alphabetsize_type alphabetsize = 256) {
+typedef typename std::iterator_traits<StringIterator2_type>::value_type value_type;
 typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
-  SAIterator_type piter, i;
-  StringIterator_type j;
+  SAIterator_type piter, i, k;
+  StringIterator2_type j;
   pos_type *bucket_A = NULL, *bucket_B = NULL;
-  pos_type n = last - first, m, pidx = -1;
+  pos_type n = T_last - T, m = SA_last - SA, u = U_last - U, pidx = -1;
 
   /* Check arguments. */
-  if(n < 0) { return -1; }
+  if((n < 0) || (m < n)) { return -1; }
   else if(n == 0) { return 0; }
-  else if(n == 1) { U[0] = T[0]; return 0; }
+  else if(n == 1) { if(0 < u) { U[0] = T[0]; } return 1; }
 
   try {
     bucket_A = new pos_type[alphabetsize]; if(bucket_A == NULL) { throw; }
     bucket_B = new pos_type[alphabetsize * alphabetsize]; if(bucket_B == NULL) { throw; }
-    m = core::sort_typeBstar(T, first, bucket_A, bucket_B, n, alphabetsize);
-    piter = core::constructBWT_from_typeBstar(T, first, bucket_A, bucket_B, n, m, alphabetsize);
-    pidx = piter - first + 1;
-    U[0] = T[n - 1];
-    for(i = first, j = U + 1; i < piter; ++i, ++j) { *j = *i; }
-    for(i += 1; i < last; ++i, ++j) { *j = *i; }
+    m = core::sort_typeBstar(T, SA, bucket_A, bucket_B, n, m, alphabetsize);
+    piter = core::constructBWT_from_typeBstar(T, SA, bucket_A, bucket_B, n, m, alphabetsize);
+    pidx = piter - SA + 1;
+    if(0 < u) {
+      U[0] = T[n - 1];
+      if(pidx <= u) {
+        for(i = SA, j = U + 1; i < piter; ++i, ++j) { *j = value_type(*i); }
+        if(n <= u) { for(i += 1; i < SA_last; ++i, ++j) { *j = value_type(*i); } }
+        else { for(i += 1, k = SA + u - 1; i < k; ++i, ++j) { *j = value_type(*i); } }
+      } else {
+        for(i = SA, j = U + 1, k = SA + u - 1; i < k; ++i, ++j) { *j = value_type(*i); }
+      }
+    }
   } catch(...) {
+    pidx = -2;
   }
 
   delete [] bucket_B;
@@ -1400,52 +1481,59 @@ typedef typename std::iterator_traits<SAIterator_type>::value_type pos_type;
   return pidx;
 }
 
-template<typename StringIterator_type, typename SAIterator_type, typename alphabetsize_type>
-typename std::iterator_traits<SAIterator_type>::value_type
-constructBWT(StringIterator_type T,
-             SAIterator_type first,
-             SAIterator_type last,
-             alphabetsize_type alphabetsize = 256) {
-  if(first > last) { return -1; }
-  else if((last - first) <= 1) { return 0; }
-
-  return constructBWT(T, T, first, last, alphabetsize);
-}
-
-template<typename StringIterator_type, typename pos_type, typename alphabetsize_type>
+template<typename pos_type, typename StringIterator1_type, typename StringIterator2_type, typename alphabetsize_type>
 pos_type
-constructBWT(const StringIterator_type T,
-             StringIterator_type U,
-             pos_type size,
+constructBWT(const StringIterator1_type T, const StringIterator1_type T_last,
+             StringIterator2_type U, StringIterator2_type U_last,
              alphabetsize_type alphabetsize = 256) {
   pos_type *SA = NULL;
-  pos_type pidx = -1;
+  pos_type n = T_last - T, pidx = -1;
 
-  if(size < 0) { return -1; }
-  else if(size == 0) { return 0; }
-  else if(size == 1) { U[0] = T[0]; return 0; }
+  /* Check arguments. */
+  if(n < 0) { return -1; }
+  else if(n == 0) { return 0; }
+  else if(n == 1) { if(U < U_last) { U[0] = T[0]; } return 1; }
 
   try {
-    SA = new pos_type[size + EXTRA_SPACE]; if(SA == NULL) { throw; }
-    pidx = constructBWT(T, U, SA, SA + size, alphabetsize);
+    SA = new pos_type[n]; if(SA == NULL) { throw; }
+    pidx = constructBWT(T, T_last, U, U_last, SA, SA + n, alphabetsize);
   } catch(...) {
+    pidx = -2;
   }
-
   delete [] SA;
 
   return pidx;
 }
 
-template<typename StringIterator_type, typename pos_type, typename alphabetsize_type>
+template<typename pos_type, typename StringIterator_type, typename alphabetsize_type>
 pos_type
-constructBWT(StringIterator_type T,
-             pos_type size,
+constructBWT(StringIterator_type T, StringIterator_type T_last,
              alphabetsize_type alphabetsize = 256) {
-  if(size < 0) { return -1; }
-  else if(size <= 1) { return 0; }
-
-  return constructBWT(T, T, size, alphabetsize);
+  return constructBWT<pos_type>(T, T_last, T, T_last, alphabetsize);
 }
+
+template<typename StringIterator1_type, typename StringIterator2_type,
+         typename SAIterator_type, typename alphabetsize_type>
+typename std::iterator_traits<SAIterator_type>::value_type
+constructBWT(const StringIterator1_type T, StringIterator2_type U, SAIterator_type SA,
+             typename std::iterator_traits<SAIterator_type>::value_type n,
+             alphabetsize_type alphabetsize = 256) {
+  return constructBWT(T, T + n, U, U + n, SA, SA + n, alphabetsize);
+}
+
+template<typename pos_type, typename StringIterator1_type, typename StringIterator2_type, typename alphabetsize_type>
+pos_type
+constructBWT(const StringIterator1_type T, StringIterator2_type U,
+             pos_type n, alphabetsize_type alphabetsize = 256) {
+  return constructBWT<pos_type>(T, T + n, U, U + n, alphabetsize);
+}
+
+template<typename pos_type, typename StringIterator_type, typename alphabetsize_type>
+pos_type
+constructBWT(StringIterator_type T, pos_type n, alphabetsize_type alphabetsize = 256) {
+  return constructBWT<pos_type>(T, T + n, alphabetsize);
+}
+
 
 } /* namespace divsufsortxx */
 
