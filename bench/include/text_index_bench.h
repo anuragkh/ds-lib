@@ -4,17 +4,18 @@
 #include <string>
 #include <vector>
 
-#include "text/suffix_tree_index.h"
+#include "text/text_index.h"
 #include "benchmark.h"
 
 namespace dsl_bench {
 
-class SuffixTreeBench : public Benchmark {
+class TextIndexBench : public Benchmark {
  public:
   /**
    * Constructor for SuffixTree benchmark.
    */
-  SuffixTreeBench(const std::string& input_file, bool construct);
+  TextIndexBench(const std::string& input_file, bool construct,
+                 int data_structure);
 
   /**
    * Benchmark search operation on SuffixTree.
@@ -29,9 +30,9 @@ class SuffixTreeBench : public Benchmark {
                   const std::string& result_path) const;
 
  private:
-  dsl::SuffixTreeIndex *suffix_tree_;
+  dsl::TextIndex *text_idx_;
 };
 
 }
 
-#endif /* DSL_BENCH_SUFFIX_TREE_BENCH_H_ */
+#endif // DSL_BENCH_SUFFIX_TREE_BENCH_H_

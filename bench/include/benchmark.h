@@ -87,4 +87,4 @@ namespace dsl_bench {
 
 
 
-#endif /* BENCH_INCLUDE_BENCHMARK_H_ */
+#endif // DSL_BENCH_BENCHMARK_H_
