@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "text/suffix_tree.h"
+#include "text/suffix_tree_index.h"
 #include "benchmark.h"
 
 namespace dsl_bench {
@@ -29,7 +29,7 @@ class SuffixTreeBench : public Benchmark {
                   const std::string& result_path) const;
 
  private:
-  dsl::SuffixTree *suffix_tree_;
+  dsl::SuffixTreeIndex *suffix_tree_;
 };
 
 }

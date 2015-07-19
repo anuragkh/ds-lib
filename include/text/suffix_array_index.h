@@ -24,7 +24,7 @@ class SuffixArrayIndex : public TextIndex {
   virtual std::pair<int64_t, int64_t> getRange(const std::string& query) const;
   int32_t compare(const std::string& query, uint64_t pos) const;
 
-  SuffixArray *suffix_array_;
+  SuffixArray *sa_;
   const char* input_;
   size_t size_;
 };

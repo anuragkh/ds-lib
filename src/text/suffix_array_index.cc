@@ -7,14 +7,14 @@
 #include "utils.h"
 
 dsl::SuffixArrayIndex::SuffixArrayIndex() {
-  suffix_array_ = NULL;
+  sa_ = NULL;
   input_ = NULL;
   size_ = 0;
 }
 
 dsl::SuffixArrayIndex::SuffixArrayIndex(const char *input, size_t size,
                                         SuffixArray* suffix_array) {
-  suffix_array_ = suffix_array;
+  sa_ = suffix_array;
   input_ = input;
   size_ = size;
 }
@@ -49,7 +49,7 @@ std::pair<int64_t, int64_t> dsl::SuffixArrayIndex::getRange(
   int64_t s;
   while (sp < st) {
     s = (sp + st) / 2;
-    if (compare(query, suffix_array_->at(s)) > 0)
+    if (compare(query, sa_->at(s)) > 0)
       sp = s + 1;
     else
       st = s;
@@ -61,7 +61,7 @@ std::pair<int64_t, int64_t> dsl::SuffixArrayIndex::getRange(
 
   while (ep < et) {
     e = ceil((double) (ep + et) / 2);
-    if (compare(query, suffix_array_->at(e)) == 0)
+    if (compare(query, sa_->at(e)) == 0)
       ep = e;
     else
       et = e - 1;
@@ -78,7 +78,7 @@ void dsl::SuffixArrayIndex::search(std::vector<int64_t>& results,
   }
 
   for (uint64_t i = range.first; i <= range.second; i++) {
-    results.push_back(suffix_array_->at(i));
+    results.push_back(sa_->at(i));
   }
 }
 
@@ -101,7 +101,7 @@ size_t dsl::SuffixArrayIndex::serialize(std::ostream& out) {
   out.write(reinterpret_cast<const char *>(input_), size_ * sizeof(char));
   out_size += size_ * sizeof(char);
 
-  out_size += suffix_array_->serialize(out);
+  out_size += sa_->serialize(out);
 
   return out_size;
 }
@@ -117,8 +117,8 @@ size_t dsl::SuffixArrayIndex::deserialize(std::istream& in) {
 
   input_ = input;
 
-  suffix_array_ = new dsl::SuffixArray();
-  in_size += suffix_array_->deserialize(in);
+  sa_ = new dsl::SuffixArray();
+  in_size += sa_->deserialize(in);
 
   return in_size;
 }
@@ -162,7 +162,7 @@ void dsl::AugmentedSuffixArrayIndex::constructLcp() {
   // Populate inverse suffix array
   uint64_t *isa = new uint64_t[N];
   for (uint64_t i = 0; i < N; i++) {
-    isa[suffix_array_->at(i)] = i;
+    isa[sa_->at(i)] = i;
   }
 
   // Populate the LCP array
@@ -171,7 +171,7 @@ void dsl::AugmentedSuffixArrayIndex::constructLcp() {
   uint64_t max_lcp_val = 0;
   for (uint64_t i = 0; i < N; i++) {
     uint64_t pos = isa[i];
-    uint64_t j = suffix_array_->at(Utils::modulo((pos - 1), N));
+    uint64_t j = sa_->at(Utils::modulo((pos - 1), N));
     while (input_[(i + lcp_val) % N] == input_[(j + lcp_val) % N]) {
       lcp_val++;
     }
@@ -227,26 +227,26 @@ int64_t dsl::AugmentedSuffixArrayIndex::getFirstOccurrence(
     const std::string& query) const {
   int64_t lp = 0;
   int64_t rp = size_;
-  uint64_t l = lcpStr(query, suffix_array_->at(lp));
-  uint64_t r = lcpStr(query, suffix_array_->at(rp));
+  uint64_t l = lcpStr(query, sa_->at(lp));
+  uint64_t r = lcpStr(query, sa_->at(rp));
   uint64_t m;
 
   while (rp - lp > 1) {
     int64_t mp = (lp + rp) / 2;
     if (l >= r) {
       if (lcp_l_->at(mp - 1) >= l) {
-        m = l + lcpStr(query.substr(l), suffix_array_->at(mp) + l);
+        m = l + lcpStr(query.substr(l), sa_->at(mp) + l);
       } else {
         m = lcp_l_->at(mp - 1);
       }
     } else {
       if (lcp_r_->at(mp - 1) >= r) {
-        m = r + lcpStr(query.substr(r), suffix_array_->at(mp) + r);
+        m = r + lcpStr(query.substr(r), sa_->at(mp) + r);
       } else {
         m = lcp_r_->at(mp - 1);
       }
     }
-    if (m == query.length() || query[m] <= input_[suffix_array_->at(mp) + m]) {
+    if (m == query.length() || query[m] <= input_[sa_->at(mp) + m]) {
       rp = mp;
       r = m;
     } else {

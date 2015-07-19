@@ -13,14 +13,14 @@ dsl_bench::SuffixTreeBench::SuffixTreeBench(const std::string& input_file,
   if (construct) {
     const std::string input_text((std::istreambuf_iterator<char>(input_stream)),
                                  std::istreambuf_iterator<char>());
-    suffix_tree_ = new dsl::SuffixTree(input_text);
+    suffix_tree_ = new dsl::SuffixTreeIndex(input_text);
 
     // Serialize to disk for future use.
     std::ofstream out(input_file + ".st");
     suffix_tree_->serialize(out);
     out.close();
   } else {
-    suffix_tree_ = new dsl::SuffixTree();
+    suffix_tree_ = new dsl::SuffixTreeIndex();
     suffix_tree_->deserialize(input_stream);
   }
   input_stream.close();

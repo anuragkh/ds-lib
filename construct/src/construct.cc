@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "text/compressed_suffix_tree.h"
-#include "text/suffix_tree.h"
+#include "suffix_tree.h"
 #include "text/suffix_array_index.h"
 
 void print_usage(char *exec) {
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   input_stream.close();
   if (data_structure == 0) {
     fprintf(stderr, "Constructing suffix tree...\n");
-    dsl::SuffixTree suffix_tree(input_text);
+    dsl::CompactSuffixTree suffix_tree(input_text);
     std::ofstream out(input_file + ".st");
     suffix_tree.serialize(out);
     out.close();
