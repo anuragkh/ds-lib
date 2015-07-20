@@ -169,10 +169,11 @@ void dsl::AugmentedSuffixArrayIndex::constructLcp() {
   uint64_t *lcp = new uint64_t[N]();
   uint64_t lcp_val = 0;
   uint64_t max_lcp_val = 0;
-  for (uint64_t i = 0; i < N; i++) {
+  for (uint64_t i = 0; i < N - 1; i++) {
     uint64_t pos = isa[i];
-    uint64_t j = sa_->at(Utils::modulo((pos - 1), N));
-    while (input_[(i + lcp_val) % N] == input_[(j + lcp_val) % N]) {
+    uint64_t j = sa_->at(pos - 1);
+    while (i + lcp_val < N - 1 && j + lcp_val < N - 1
+        && input_[i + lcp_val] == input_[j + lcp_val]) {
       lcp_val++;
     }
     if (pos != 0) {
