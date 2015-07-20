@@ -48,10 +48,11 @@ void dsl::SuffixTree::construct() {
   uint64_t *_lcp = new uint64_t[N]();
   uint32_t lcp_val = 0;
   uint32_t max_lcp_val = 0;
-  for (uint32_t i = 0; i < N; i++) {
+  for (uint32_t i = 0; i < N - 1; i++) {
     uint32_t pos = isa[i];
-    uint32_t j = sa->at(Utils::modulo((pos - 1), N));
-    while (input_[(i + lcp_val) % N] == input_[(j + lcp_val) % N]) {
+    uint32_t j = sa->at(pos - 1);
+    while (i + lcp_val < N - 1 && j + lcp_val < N - 1
+        && input_[i + lcp_val] == input_[j + lcp_val]) {
       lcp_val++;
     }
     _lcp[pos] = lcp_val;
