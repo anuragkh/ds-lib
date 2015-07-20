@@ -72,6 +72,11 @@ void dsl::SuffixTree::construct() {
   // Initialize the root with the first leaf child
   root_ = new st::InternalNode();
 
+#ifdef DEBUG_CONSTRUCT
+  fprintf(stderr, "Inserting suffix i=0: (%u, %u)...\n", sa->at(0), N - 1);
+  fprintf(stderr, "Inserting segment (%u, %u) in new leaf.\n", sa->at(0), N - 1);
+#endif
+
   st::LeafNode *child = new st::LeafNode(sa->at(0));
   uint32_t last_leaf_id = root_->addChild(sa->at(0), N - 1, child);
 
@@ -79,7 +84,7 @@ void dsl::SuffixTree::construct() {
   uint32_t last_leaf_depth = N - sa->at(0);
   for (uint32_t i = 0; i < N - 1; i++) {
 #ifdef DEBUG_CONSTRUCT
-    fprintf(stderr, "Inserting suffix %u: (%u, %u)...\n", i + 1, sa->at(i + 1), N - 1);
+    fprintf(stderr, "Inserting suffix i=%u: (%u, %u)...\n", i + 1, sa->at(i + 1), N - 1);
 #endif
 
     // Traverse up the right-most path
@@ -94,6 +99,9 @@ void dsl::SuffixTree::construct() {
 
     assert(path_length <= lcp->at(i + 1));
     assert(!current_node->is_leaf_);
+#ifdef DEBUG_CONSTRUCT
+    fprintf(stderr, "path_length = %u, lcp(i+1) = %u\n", path_length, lcp->at(i + 1));
+#endif
 
     if (path_length == lcp->at(i + 1)) {
       st::LeafNode *leaf = new st::LeafNode(sa->at(i + 1));
@@ -109,10 +117,11 @@ void dsl::SuffixTree::construct() {
       // Fetch old node info
       uint32_t old_node_id = current_node->leftmostChildId();
       st::Node *old_node = current_node->children_[old_node_id];
-      uint32_t old_node_path_length = path_length + current_node->edgeLength(old_node_id);
+      uint32_t old_node_path_length = path_length
+          + current_node->edgeLength(old_node_id);
 
 #ifdef DEBUG_CONSTRUCT
-      assert(path_length < lcp->at(i +  1));
+      assert(path_length < lcp->at(i + 1));
       uint32_t old_node_start = current_node->start_[old_node_id];
       uint32_t old_node_end = current_node->end_[old_node_id];
       fprintf(stderr, "path_length < lcp(i+1): Deleting segment (%u, %u)...\n", old_node_start, old_node_end);
@@ -133,7 +142,8 @@ void dsl::SuffixTree::construct() {
 #ifdef DEBUG_CONSTRUCT
       fprintf(stderr, "path_length < lcp(i+1): Adding back partial old segment (%u, %u)...\n", sa->at(i) + lcp->at(i + 1), sa->at(i) + old_node_path_length - 1);
 #endif
-      new_node->addChild(sa->at(i) + lcp->at(i + 1), sa->at(i) + old_node_path_length - 1, old_node);
+      new_node->addChild(sa->at(i) + lcp->at(i + 1),
+                         sa->at(i) + old_node_path_length - 1, old_node);
 
       st::LeafNode *leaf = new st::LeafNode(sa->at(i + 1));
 #ifdef DEBUG_CONSTRUCT
