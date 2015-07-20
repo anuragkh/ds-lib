@@ -265,6 +265,7 @@ dsl::CompactSuffixTree::CompactSuffixTree(const char* input, size_t size) {
   size_ = size;
   SuffixTree *st = new SuffixTree(input, size);
   root_ = new st::CompactInternalNode(st->getRoot());
+  delete st;
 }
 
 dsl::CompactSuffixTree::CompactSuffixTree(const std::string& input)
