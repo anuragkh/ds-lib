@@ -534,15 +534,13 @@ dsl::st::CompactNode* dsl::CompactSuffixTree::readNode(std::istream& in,
   bool is_leaf;
   in.read(reinterpret_cast<char *>(&is_leaf), sizeof(bool));
   *in_size = (*in_size) + sizeof(bool);
-  st::CompactNode *node;
   if (is_leaf) {
     uint32_t offset;
     in.read(reinterpret_cast<char *>(&offset), sizeof(uint32_t));
     *in_size = (*in_size) + sizeof(uint32_t);
-    node = new st::CompactLeafNode(offset);
+    return new st::CompactLeafNode(offset);
   } else {
-    node = new st::CompactInternalNode();
-    st::CompactInternalNode *inode = ((st::CompactInternalNode *) node);
+    st::CompactInternalNode *inode = new st::CompactInternalNode();
     in.read(reinterpret_cast<char *>(&inode->size_), sizeof(uint8_t));
     *in_size = (*in_size) + sizeof(uint8_t);
     inode->start_ = new uint32_t[inode->size_];
@@ -559,9 +557,8 @@ dsl::st::CompactNode* dsl::CompactSuffixTree::readNode(std::istream& in,
     for (uint32_t i = 0; i < inode->size_; i++) {
       inode->children_[i] = readNode(in, in_size);
     }
+    return inode;
   }
-
-  return node;
 }
 
 size_t dsl::CompactSuffixTree::serialize(std::ostream& out) {
