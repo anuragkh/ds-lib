@@ -67,6 +67,10 @@ struct CompactNode {
   CompactNode(bool is_leaf) {
     is_leaf_ = is_leaf;
   }
+  virtual ~CompactNode() {
+  }
+
+  virtual size_t size() = 0;
   bool is_leaf_;
 };
 
@@ -79,6 +83,10 @@ struct CompactLeafNode : CompactNode {
   CompactLeafNode(LeafNode *node)
       : CompactNode(true) {
     offset_ = node->offset_;
+  }
+
+  size_t size() {
+    return sizeof(uint32_t) + sizeof(uint8_t);
   }
 
   uint32_t offset_;
@@ -110,6 +118,14 @@ struct CompactInternalNode : CompactNode {
         children_[i] = new st::CompactInternalNode(((InternalNode *) node->children_[i]));
       }
     }
+  }
+
+  size_t size() {
+    size_t subtree_size = 2 * sizeof(uint8_t) + size_ * (sizeof(uint32_t) * 2 + sizeof(CompactNode *));
+    for(uint8_t i = 0; i < size_; i++) {
+      subtree_size += children_[i]->size();
+    }
+    return subtree_size;
   }
 
   uint8_t size_;
@@ -177,7 +193,7 @@ class SuffixTree {
 class CompactSuffixTree {
  public:
   CompactSuffixTree();
-  CompactSuffixTree(const char *input, size_t size);
+  CompactSuffixTree(const char *input, uint32_t size);
   CompactSuffixTree(const std::string& input);
   ~CompactSuffixTree();
 
@@ -197,7 +213,7 @@ class CompactSuffixTree {
 
   st::CompactInternalNode* root_;
   const char* input_;
-  size_t size_;
+  uint32_t size_;
 
   uint64_t num_internal_nodes_;
   uint64_t num_leaf_nodes_;

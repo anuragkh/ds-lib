@@ -375,7 +375,7 @@ dsl::CompactSuffixTree::CompactSuffixTree() {
   num_leaf_nodes_ = 0;
 }
 
-dsl::CompactSuffixTree::CompactSuffixTree(const char* input, size_t size) {
+dsl::CompactSuffixTree::CompactSuffixTree(const char* input, uint32_t size) {
   input_ = input;
   size_ = size;
   num_internal_nodes_ = 0;
@@ -595,6 +595,7 @@ size_t dsl::CompactSuffixTree::deserialize(std::istream& in) {
   root_ = (st::CompactInternalNode *) readNode(in, &in_size);
 
   fprintf(stderr, "Read %llu internal nodes and %llu leaf nodes.\n", num_internal_nodes_, num_leaf_nodes_);
+  fprintf(stderr, "Total size = %llu\n", root_->size() + sizeof(uint32_t) + size_ * sizeof(char));
 
   return in_size;
 }
