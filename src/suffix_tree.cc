@@ -34,17 +34,21 @@ void dsl::SuffixTree::deleteTree(st::Node* node) {
 }
 
 void dsl::SuffixTree::construct() {
+
   // First construct a suffix array and lcp array
+  fprintf(stderr, "Constructing suffix array...\n");
   SuffixArray *sa = new SuffixArray(input_, size_);
   uint32_t N = size_;
 
   // Populate inverse suffix array
+  fprintf(stderr, "Constructing inverse suffix array...\n");
   uint32_t *isa = new uint32_t[N];
   for (uint32_t i = 0; i < N; i++) {
     isa[sa->at(i)] = i;
   }
 
   // Populate the LCP array
+  fprintf(stderr, "Constructing lcp...\n");
   uint64_t *_lcp = new uint64_t[N]();
   uint32_t lcp_val = 0;
   uint32_t max_lcp_val = 0;
@@ -63,6 +67,8 @@ void dsl::SuffixTree::construct() {
   }
   delete[] isa;
 
+  fprintf(stderr, "Deleted ISA...\n");
+
   BitmapArray *lcp = new BitmapArray(_lcp, N,
                                      Utils::int_log_2(max_lcp_val + 1));
   delete[] _lcp;
@@ -70,6 +76,7 @@ void dsl::SuffixTree::construct() {
   // Now we have the LCP array and the Suffix array.
   // We start constructing the Suffix Tree.
 
+  fprintf(stderr, "Constructing Suffix Tree...\n");
   // Initialize the root with the first leaf child
   root_ = new st::InternalNode();
 
@@ -158,7 +165,9 @@ void dsl::SuffixTree::construct() {
     }
   }
 
+  fprintf(stderr, "Deleting Suffix Array...\n");
   delete sa;
+  fprintf(stderr, "Deleting LCP...\n");
   delete lcp;
 
 #ifdef DEBUG_VERIFY
@@ -264,7 +273,9 @@ dsl::CompactSuffixTree::CompactSuffixTree(const char* input, size_t size) {
   input_ = input;
   size_ = size;
   SuffixTree *st = new SuffixTree(input, size);
+  fprintf(stderr, "Compacting Suffix Tree...\n");
   root_ = new st::CompactInternalNode(st->getRoot());
+  fprintf(stderr, "Deleting Original Suffix Tree...\n");
   delete st;
 }
 
