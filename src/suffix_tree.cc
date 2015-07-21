@@ -410,13 +410,17 @@ void dsl::CompactSuffixTree::deleteTree(st::CompactNode *node) {
 
 int32_t dsl::CompactSuffixTree::getChildId(st::CompactInternalNode *node,
                                            char c) {
-  // Linear search for now; can replace by binary search
-  for (int32_t i = 0; i < node->size_; i++) {
-#ifdef DEBUG_QUERY
-    fprintf(stderr, "i: %u, path label start: [%u, %c]\n", i, node->start_[i], input_[node->start_[i]] == '\0' ? '$' : input_[node->start_[i]]);
-#endif
-    if (input_[node->start_[i]] == c)
-      return i;
+  // Binary search for character
+  int32_t low = 0, high = node->size_ - 1, mid_point = 0;
+  while(low <= high) {
+    mid_point = low + (high - low) / 2;
+    if(c == input_[node->start_[mid_point]]) {
+      return mid_point;
+    } else if(c < input_[node->start_[mid_point]]) {
+      high = mid_point - 1;
+    } else {
+      low = mid_point + 1;
+    }
   }
 
   return -1;
@@ -559,7 +563,7 @@ dsl::st::CompactNode* dsl::CompactSuffixTree::readNode(std::istream& in,
       in.read(reinterpret_cast<char *>(&inode->end_[i]), sizeof(uint32_t));
       *in_size = (*in_size) + sizeof(uint32_t);
     }
-    inode->children_ = new st::CompactNode*[inode->size_];
+    inode->children_ = new st::CompactNode*[inode->size_]();
     for (uint32_t i = 0; i < inode->size_; i++) {
       inode->children_[i] = readNode(in, in_size);
     }
@@ -593,9 +597,6 @@ size_t dsl::CompactSuffixTree::deserialize(std::istream& in) {
   input_ = input;
 
   root_ = (st::CompactInternalNode *) readNode(in, &in_size);
-
-  fprintf(stderr, "Read %llu internal nodes and %llu leaf nodes.\n", num_internal_nodes_, num_leaf_nodes_);
-  fprintf(stderr, "Total size = %llu\n", root_->size() + sizeof(uint32_t) + size_ * sizeof(char));
 
   return in_size;
 }
