@@ -371,11 +371,15 @@ dsl::CompactSuffixTree::CompactSuffixTree() {
   root_ = NULL;
   input_ = NULL;
   size_ = 0;
+  num_internal_nodes_ = 0;
+  num_leaf_nodes_ = 0;
 }
 
 dsl::CompactSuffixTree::CompactSuffixTree(const char* input, size_t size) {
   input_ = input;
   size_ = size;
+  num_internal_nodes_ = 0;
+  num_leaf_nodes_ = 0;
   SuffixTree *st = new SuffixTree(input, size);
   fprintf(stderr, "Compacting Suffix Tree...\n");
   root_ = new st::CompactInternalNode(st->getRoot());
@@ -538,8 +542,10 @@ dsl::st::CompactNode* dsl::CompactSuffixTree::readNode(std::istream& in,
     uint32_t offset;
     in.read(reinterpret_cast<char *>(&offset), sizeof(uint32_t));
     *in_size = (*in_size) + sizeof(uint32_t);
+    num_leaf_nodes_++;
     return new st::CompactLeafNode(offset);
   } else {
+    num_internal_nodes_++;
     st::CompactInternalNode *inode = new st::CompactInternalNode();
     in.read(reinterpret_cast<char *>(&inode->size_), sizeof(uint8_t));
     *in_size = (*in_size) + sizeof(uint8_t);
@@ -587,6 +593,8 @@ size_t dsl::CompactSuffixTree::deserialize(std::istream& in) {
   input_ = input;
 
   root_ = (st::CompactInternalNode *) readNode(in, &in_size);
+
+  fprintf(stderr, "Read %llu internal nodes and %llu leaf nodes.\n", num_internal_nodes_, num_leaf_nodes_);
 
   return in_size;
 }

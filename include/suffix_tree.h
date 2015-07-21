@@ -198,6 +198,9 @@ class CompactSuffixTree {
   st::CompactInternalNode* root_;
   const char* input_;
   size_t size_;
+
+  uint64_t num_internal_nodes_;
+  uint64_t num_leaf_nodes_;
 };
 
 }
