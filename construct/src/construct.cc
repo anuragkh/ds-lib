@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   input_stream.close();
   if (data_structure == 0) {
     fprintf(stderr, "Constructing suffix tree...\n");
-    dsl::CompactSuffixTree suffix_tree(input_text);
+    dsl::SuffixTree suffix_tree(input_text);
     std::ofstream out(input_file + ".st");
     suffix_tree.serialize(out);
     out.close();

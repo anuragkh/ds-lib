@@ -36,19 +36,19 @@ void dsl::SuffixTree::deleteTree(st::Node* node) {
 void dsl::SuffixTree::construct() {
 
   // First construct a suffix array and lcp array
-  fprintf(stderr, "Constructing suffix array...\n");
+  fprintf(stderr, "Constructing SA...\n");
   SuffixArray *sa = new SuffixArray(input_, size_);
   uint32_t N = size_;
 
   // Populate inverse suffix array
-  fprintf(stderr, "Constructing inverse suffix array...\n");
+  fprintf(stderr, "Constructing ISA...\n");
   uint32_t *isa = new uint32_t[N];
   for (uint32_t i = 0; i < N; i++) {
     isa[sa->at(i)] = i;
   }
 
   // Populate the LCP array
-  fprintf(stderr, "Constructing lcp...\n");
+  fprintf(stderr, "Constructing LCP...\n");
   uint64_t *_lcp = new uint64_t[N]();
   uint32_t lcp_val = 0;
   uint32_t max_lcp_val = 0;
@@ -76,7 +76,7 @@ void dsl::SuffixTree::construct() {
   // Now we have the LCP array and the Suffix array.
   // We start constructing the Suffix Tree.
 
-  fprintf(stderr, "Constructing Suffix Tree...\n");
+  fprintf(stderr, "Constructing ST...\n");
   // Initialize the root with the first leaf child
   root_ = new st::InternalNode();
 
@@ -165,7 +165,7 @@ void dsl::SuffixTree::construct() {
     }
   }
 
-  fprintf(stderr, "Deleting Suffix Array...\n");
+  fprintf(stderr, "Deleting SA...\n");
   delete sa;
   fprintf(stderr, "Deleting LCP...\n");
   delete lcp;
@@ -261,6 +261,110 @@ int64_t dsl::SuffixTree::countLeaves(st::Node *node) {
   }
 
   return count;
+}
+
+size_t dsl::SuffixTree::writeNode(std::ostream& out, st::Node *node) {
+  size_t out_size = 0;
+
+  out.write(reinterpret_cast<const char *>(&(node->is_leaf_)), sizeof(bool));
+  out_size += sizeof(bool);
+
+  if (node->is_leaf_) {
+    st::LeafNode *lnode = (st::LeafNode *) node;
+    out.write(reinterpret_cast<const char *>(&(lnode->offset_)),
+              sizeof(uint32_t));
+    out_size += sizeof(uint32_t);
+  } else {
+    st::InternalNode *inode = (st::InternalNode *) node;
+    uint8_t node_size = inode->children_.size();
+    out.write(reinterpret_cast<const char *>(&(node_size)),
+              sizeof(uint8_t));
+    out_size += sizeof(uint8_t);
+    for (uint32_t i = 0; i < node_size; i++) {
+      out.write(reinterpret_cast<const char *>(&inode->start_[i]),
+                sizeof(uint32_t));
+      out_size += sizeof(uint32_t);
+    }
+    for (uint32_t i = 0; i < node_size; i++) {
+      out.write(reinterpret_cast<const char *>(&inode->end_[i]),
+                sizeof(uint32_t));
+      out_size += sizeof(uint32_t);
+    }
+    for (uint32_t i = 0; i < node_size; i++) {
+      out_size += writeNode(out, inode->children_[i]);
+    }
+  }
+
+  return out_size;
+}
+
+dsl::st::Node* dsl::SuffixTree::readNode(std::istream& in, size_t *in_size) {
+  bool is_leaf;
+  in.read(reinterpret_cast<char *>(&is_leaf), sizeof(bool));
+  *in_size = (*in_size) + sizeof(bool);
+  st::Node *node;
+  if (is_leaf) {
+    uint32_t offset;
+    in.read(reinterpret_cast<char *>(&offset), sizeof(uint32_t));
+    *in_size = (*in_size) + sizeof(uint32_t);
+    node = new st::LeafNode(offset);
+  } else {
+    node = new st::InternalNode();
+    st::InternalNode *inode = ((st::InternalNode *) node);
+    uint8_t node_size;
+    in.read(reinterpret_cast<char *>(&node_size), sizeof(uint8_t));
+    *in_size = (*in_size) + sizeof(uint8_t);
+    inode->start_.reserve(node_size);
+    for (uint32_t i = 0; i < node_size; i++) {
+      uint32_t val;
+      in.read(reinterpret_cast<char *>(&val), sizeof(uint32_t));
+      *in_size = (*in_size) + sizeof(uint32_t);
+      inode->start_.push_back(val);
+    }
+    inode->end_.reserve(node_size);
+    for (uint32_t i = 0; i < node_size; i++) {
+      uint32_t val;
+      in.read(reinterpret_cast<char *>(&val), sizeof(uint32_t));
+      *in_size = (*in_size) + sizeof(uint32_t);
+      inode->end_.push_back(val);
+    }
+    inode->children_.reserve(node_size);
+    for (uint32_t i = 0; i < node_size; i++) {
+      inode->children_[i] = readNode(in, in_size);
+    }
+  }
+
+  return node;
+}
+
+size_t dsl::SuffixTree::serialize(std::ostream& out) {
+  size_t out_size = 0;
+
+  out.write(reinterpret_cast<const char *>(&size_), sizeof(uint32_t));
+  out_size += sizeof(uint32_t);
+
+  out.write(reinterpret_cast<const char *>(input_), size_ * sizeof(char));
+  out_size += size_ * sizeof(char);
+
+  out_size += writeNode(out, root_);
+
+  return out_size;
+}
+
+size_t dsl::SuffixTree::deserialize(std::istream& in) {
+  size_t in_size = 0;
+
+  in.read(reinterpret_cast<char *>(&size_), sizeof(uint32_t));
+  in_size += sizeof(uint32_t);
+
+  char *input = new char[size_];
+  in.read(reinterpret_cast<char *>(input), size_ * sizeof(char));
+  in_size += size_ * sizeof(char);
+  input_ = input;
+
+  root_ = (st::InternalNode *) readNode(in, &in_size);
+
+  return in_size;
 }
 
 dsl::CompactSuffixTree::CompactSuffixTree() {

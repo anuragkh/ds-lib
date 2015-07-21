@@ -131,6 +131,9 @@ class SuffixTree {
   int64_t countLeaves(st::Node* node);
   st::InternalNode* getRoot();
 
+  size_t serialize(std::ostream& out);
+  size_t deserialize(std::istream& in);
+
 #ifdef DEBUG_CONSTRUCT
   void display() {
     show(root_, 0);
@@ -162,6 +165,9 @@ class SuffixTree {
   void construct();
   int32_t getChildId(st::InternalNode *node, char c);
   void deleteTree(st::Node *node);
+
+  size_t writeNode(std::ostream& out, st::Node* node);
+  st::Node *readNode(std::istream& in, size_t *in_size);
 
   st::InternalNode *root_;
   const char* input_;
