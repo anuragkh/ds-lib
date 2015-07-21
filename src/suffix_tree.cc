@@ -503,6 +503,10 @@ int64_t dsl::CompactSuffixTree::countLeaves(st::CompactNode* node) {
   return count;
 }
 
+char dsl::CompactSuffixTree::charAt(uint64_t i) const {
+  return input_[i];
+}
+
 size_t dsl::CompactSuffixTree::writeNode(std::ostream& out,
                                          st::CompactNode *node) {
   size_t out_size = 0;

@@ -15,6 +15,8 @@ class CompressedSuffixTree : public dsl::TextIndex {
   int64_t count(const std::string& query) const;
   bool contains(const std::string& query) const;
 
+  char charAt(uint64_t i) const;
+
   size_t serialize(std::ostream& out);
   size_t deserialize(std::istream& in);
 

@@ -92,6 +92,10 @@ bool dsl::SuffixArrayIndex::contains(const std::string& query) const {
   return (range.second >= range.first);
 }
 
+char dsl::SuffixArrayIndex::charAt(uint64_t i) const {
+  return input_[i];
+}
+
 size_t dsl::SuffixArrayIndex::serialize(std::ostream& out) {
   size_t out_size = 0;
 

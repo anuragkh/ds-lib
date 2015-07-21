@@ -29,6 +29,10 @@ bool dsl::SuffixTreeIndex::contains(const std::string& query) const {
   return st_->walkTree(query) != NULL;
 }
 
+char dsl::SuffixTreeIndex::charAt(uint64_t i) const {
+  return st_->charAt(i);
+}
+
 size_t dsl::SuffixTreeIndex::serialize(std::ostream& out) {
   return st_->serialize(out);
   return 0;

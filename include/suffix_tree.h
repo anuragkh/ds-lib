@@ -201,6 +201,8 @@ class CompactSuffixTree {
   void getOffsets(std::vector<int64_t>& results, st::CompactNode* node);
   int64_t countLeaves(st::CompactNode* node);
 
+  char charAt(uint64_t i) const;
+
   size_t serialize(std::ostream& out);
   size_t deserialize(std::istream& in);
 

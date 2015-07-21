@@ -16,6 +16,8 @@ class SuffixTreeIndex : public TextIndex {
   virtual int64_t count(const std::string& query) const;
   virtual bool contains(const std::string& query) const;
 
+  char charAt(uint64_t i) const;
+
   virtual size_t serialize(std::ostream& out);
   virtual size_t deserialize(std::istream& in);
 

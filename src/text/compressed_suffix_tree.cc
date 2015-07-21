@@ -44,6 +44,10 @@ bool dsl::CompressedSuffixTree::contains(const std::string& query) const {
   return cst_->search((unsigned char *) query.c_str(), query.length()) != 0;
 }
 
+char dsl::CompressedSuffixTree::charAt(uint64_t i) const {
+  return cst_->substring(i, 1)[0];
+}
+
 size_t dsl::CompressedSuffixTree::serialize(std::ostream& out) {
   // Doesn't support manual serialization
   fprintf(stderr, "Manual serialization not supported.");

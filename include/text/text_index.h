@@ -19,6 +19,8 @@ class TextIndex {
   virtual int64_t count(const std::string& query) const = 0;
   virtual bool contains(const std::string& query) const = 0;
 
+  virtual char charAt(uint64_t i) const = 0;
+
   virtual size_t serialize(std::ostream& out) = 0;
   virtual size_t deserialize(std::istream& in) = 0;
 };
