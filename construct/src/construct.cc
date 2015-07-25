@@ -4,9 +4,10 @@
 #include <iostream>
 #include <fstream>
 
-#include "text/compressed_suffix_tree.h"
 #include "suffix_tree.h"
+#include "text/compressed_suffix_tree.h"
 #include "text/suffix_array_index.h"
+#include "text/ngram_index.h"
 
 void print_usage(char *exec) {
   fprintf(
@@ -67,6 +68,12 @@ int main(int argc, char **argv) {
     dsl::AugmentedSuffixArrayIndex augmented_suffix_array(input_text);
     std::ofstream out(input_file + ".asa");
     augmented_suffix_array.serialize(out);
+    out.close();
+  } else if (data_structure == 4) {
+    fprintf(stderr, "Constructing n-gram index...\n");
+    dsl::NGramIndex ngram_index(input_text);
+    std::ofstream out(input_file + ".ngm");
+    ngram_index.serialize(out);
     out.close();
   } else {
     fprintf(stderr, "Data structure %d not supported yet.\n", data_structure);
