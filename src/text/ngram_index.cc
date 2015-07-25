@@ -46,6 +46,15 @@ void dsl::NGramIndex::constructNGramIndex() {
 #endif
 }
 
+bool dsl::NGramIndex::match(const char* str1, const char* str2, size_t len) const {
+  size_t pos = 0;
+  while(pos < len) {
+    if(str1[pos] != str2[pos]) return false;
+    pos++;
+  }
+  return true;
+}
+
 bool dsl::NGramIndex::nGramStartsWith(char* ngram, char *substr) const {
   size_t pos = 0;
 #ifdef DEBUG_QUERY
@@ -89,8 +98,7 @@ void dsl::NGramIndex::search(std::vector<int64_t>& results,
     BitmapArray *res_extra = map_.at(query_str);
     for (uint64_t i = 0; i < res_extra->num_elements_; i++) {
       uint64_t offset = res_extra->at(i);
-      if (std::strncmp(query_str + n_, input_ + offset + n_, query_len - n_)
-          == 0)
+      if (match(query_str + n_, input_ + offset + n_, query_len - n_))
         results.push_back(offset);
     }
   }

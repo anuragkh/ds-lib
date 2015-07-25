@@ -20,7 +20,11 @@ namespace ngram {
     }
 
     bool operator() (char *a, char *b) const {
-      return std::strncmp(a, b, n_) < 0;
+      for(size_t i = 0; i < n_; i++) {
+        if(a[i] < b[i]) return true;
+        else if(a[i] > b[i]) return false;
+      }
+      return false;
     }
 
     uint32_t n_;
@@ -46,7 +50,7 @@ public:
 
 private:
   void constructNGramIndex();
-
+  bool match(const char* str1, const char* str2, size_t len) const;
   bool nGramStartsWith(char* ngram, char *substr) const;
 
   const char* input_;
