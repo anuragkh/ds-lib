@@ -2,6 +2,7 @@
 #define DSL_TEXT_NGRAM_INDEX_H_
 
 #include <map>
+#include <cstring>
 
 #include "bitmap_array.h"
 #include "text/text_index.h"
