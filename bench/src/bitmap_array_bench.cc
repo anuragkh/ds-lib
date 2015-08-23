@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
     t0 = GetTimestamp();
     for (size_t i = 0; i < ARRAY_SIZE; i++) {
-      array.Set(i, i);
+      array[i] = i;
     }
     t1 = GetTimestamp();
 
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     t0 = GetTimestamp();
     for (size_t i = 0; i < ARRAY_SIZE; i++) {
       // assert(array[i] == i);
-      sum += array.Get(i);
+      sum += array[i];
     }
     t1 = GetTimestamp();
 
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 
     t0 = GetTimestamp();
     for (size_t i = 0; i < ARRAY_SIZE; i++) {
-      array.Set(i, i);
+      array[i] = i;
     }
     t1 = GetTimestamp();
 
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     t0 = GetTimestamp();
     for (size_t i = 0; i < ARRAY_SIZE; i++) {
       // assert(array[i] == i);
-      sum += array.Get(i);
+      sum += array[i];
     }
     t1 = GetTimestamp();
 

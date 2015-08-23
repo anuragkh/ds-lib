@@ -22,3 +22,13 @@ SET(INCLUDE include/)
 INCLUDE_DIRECTORIES(${INCLUDE})
 
 ADD_SUBDIRECTORY(bench)
+
+# Testing framework
+# Build google testing framework
+add_subdirectory(external/gtest-1.7.0)
+
+# Build and run all tests for succinct
+add_subdirectory(test)
+
+enable_testing()
+add_test(DSTest ${TESTS_PATH}/ds_test)

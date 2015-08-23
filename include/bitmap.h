@@ -119,10 +119,7 @@ static const uint64_t low_bits_unset[65] = { 0xFFFFFFFFFFFFFFFFULL,
     0xE000000000000000ULL, 0xC000000000000000ULL, 0x8000000000000000ULL,
     0x0000000000000000ULL };
 
-class Dictionary;
-
 class Bitmap {
- friend class Dictionary;
  public:
   // Type definitions
   typedef size_t pos_type;
@@ -131,138 +128,115 @@ class Bitmap {
   typedef uint8_t width_type;
 
   // Constructors and Destructors
-  Bitmap();
-  Bitmap(size_type num_bits);
-  virtual ~Bitmap();
+  Bitmap() {
+    data_ = NULL;
+    size_ = 0;
+  }
+
+  Bitmap(size_type num_bits) {
+    data_ = new data_type[BITS2BLOCKS(num_bits)]();
+    size_ = num_bits;
+  }
+
+  virtual ~Bitmap() {
+    if (data_ != NULL) {
+      delete[] data_;
+      data_ = NULL;
+    }
+  }
 
   // Getters
-  inline data_type* GetData();
-  inline size_type GetSizeInBits();
+  data_type* GetData() {
+    return data_;
+  }
+
+  size_type GetSizeInBits() {
+    return size_;
+  }
 
   // Bit operations
-  inline void Clear();
-  inline void SetBit(pos_type i);
-  inline void UnsetBit(pos_type i);
-  inline bool GetBit(pos_type i) const;
+  void Clear() {
+    memset((void *) data_, 0, BITS2BLOCKS(size_) * sizeof(uint64_t));
+  }
+
+  void SetBit(pos_type i) {
+    SETBITVAL(data_, i);
+  }
+
+  void UnsetBit(pos_type i) {
+    CLRBITVAL(data_, i);
+  }
+
+  bool GetBit(pos_type i) const {
+    return GETBITVAL(data_, i);
+  }
 
   // Integer operations
-  inline void SetValPos(pos_type pos, data_type val, width_type bits);
-  inline data_type GetValPos(pos_type pos, width_type bits) const;
+  void SetValPos(pos_type pos, data_type val, width_type bits) {
+    pos_type s_off = pos % 64;
+    pos_type s_idx = pos / 64;
+
+    if (s_off + bits <= 64) {
+      // Can be accommodated in 1 bitmap block
+      data_[s_idx] = (data_[s_idx]
+          & (low_bits_set[s_off] | low_bits_unset[s_off + bits]))
+          | val << s_off;
+    } else {
+      // Must use 2 bitmap blocks
+      data_[s_idx] = (data_[s_idx] & low_bits_set[s_off]) | val << s_off;
+      data_[s_idx + 1] =
+          (data_[s_idx + 1] & low_bits_unset[(s_off + bits) % 64])
+              | (val >> (64 - s_off));
+    }
+  }
+
+  data_type GetValPos(pos_type pos, width_type bits) const {
+    pos_type s_off = pos % 64;
+    pos_type s_idx = pos / 64;
+
+    if (s_off + bits <= 64) {
+      // Can be read from a single block
+      return (data_[s_idx] >> s_off) & low_bits_set[bits];
+    } else {
+      // Must be read from two blocks
+      return ((data_[s_idx] >> s_off) | (data_[s_idx + 1] << (64 - s_off)))
+          & low_bits_set[bits];
+    }
+  }
 
   // Serialization/De-serialization
-  virtual size_type Serialize(std::ostream& out);
-  virtual size_type Deserialize(std::istream& in);
+  virtual size_type Serialize(std::ostream& out) {
+    size_t out_size = 0;
+
+    out.write(reinterpret_cast<const char *>(&size_), sizeof(size_type));
+    out_size += sizeof(size_type);
+
+    out.write(reinterpret_cast<const char *>(data_),
+              sizeof(data_type) * BITS2BLOCKS(size_));
+    out_size += (BITS2BLOCKS(size_) * sizeof(uint64_t));
+
+    return out_size;
+  }
+
+  virtual size_type Deserialize(std::istream& in) {
+    size_t in_size = 0;
+
+    in.read(reinterpret_cast<char *>(&size_), sizeof(size_type));
+    in_size += sizeof(size_type);
+
+    data_ = new data_type[BITS2BLOCKS(size_)];
+    in.read(reinterpret_cast<char *>(data_),
+    BITS2BLOCKS(size_) * sizeof(data_type));
+    in_size += (BITS2BLOCKS(size_) * sizeof(data_type));
+
+    return in_size;
+  }
 
  protected:
   // Data members
   data_type *data_;
   size_type size_;
 };
-
-Bitmap::Bitmap() {
-  data_ = NULL;
-  size_ = 0;
-}
-
-Bitmap::Bitmap(size_type num_bits) {
-  data_ = new data_type[BITS2BLOCKS(num_bits)]();
-  size_ = num_bits;
-}
-
-Bitmap::~Bitmap() {
-  if (data_ != NULL) {
-    delete[] data_;
-    data_ = NULL;
-  }
-}
-
-Bitmap::data_type* Bitmap::GetData() {
-  return data_;
-}
-
-Bitmap::size_type Bitmap::GetSizeInBits() {
-  return size_;
-}
-
-void Bitmap::Clear() {
-  memset((void *) data_, 0, BITS2BLOCKS(size_) * sizeof(uint64_t));
-}
-
-void Bitmap::SetBit(pos_type i) {
-  SETBITVAL(data_, i);
-}
-
-void Bitmap::UnsetBit(pos_type i) {
-  CLRBITVAL(data_, i);
-}
-
-bool Bitmap::GetBit(pos_type i) const {
-  return GETBITVAL(data_, i);
-}
-
-void PrintBits(uint64_t n) {
-  for (uint8_t i = 0; i < 64; i++) {
-    fprintf(stderr, "%llu", GETBIT(n, i));
-  }
-  fprintf(stderr, "\n");
-}
-
-void Bitmap::SetValPos(pos_type pos, data_type val, width_type bits) {
-  pos_type s_off = pos % 64;
-  pos_type s_idx = pos / 64;
-
-  if (s_off + bits <= 64) {
-    // Can be accommodated in 1 bitmap block
-    data_[s_idx] = (data_[s_idx]
-        & (low_bits_set[s_off] | low_bits_unset[s_off + bits])) | val << s_off;
-  } else {
-    // Must use 2 bitmap blocks
-    data_[s_idx] = (data_[s_idx] & low_bits_set[s_off]) | val << s_off;
-    data_[s_idx + 1] = (data_[s_idx + 1] & low_bits_unset[(s_off + bits) % 64])
-        | (val >> (64 - s_off));
-  }
-}
-
-Bitmap::data_type Bitmap::GetValPos(pos_type pos, width_type bits) const {
-  pos_type s_off = pos % 64;
-  pos_type s_idx = pos / 64;
-
-  if (s_off + bits <= 64) {
-    // Can be read from a single block
-    return (data_[s_idx] >> s_off) & low_bits_set[bits];
-  } else {
-    // Must be read from two blocks
-    return ((data_[s_idx] >> s_off) | (data_[s_idx + 1] << (64 - s_off)))
-        & low_bits_set[bits];
-  }
-}
-
-Bitmap::size_type Bitmap::Serialize(std::ostream& out) {
-  size_t out_size = 0;
-
-  out.write(reinterpret_cast<const char *>(&size_), sizeof(size_type));
-  out_size += sizeof(size_type);
-
-  out.write(reinterpret_cast<const char *>(data_),
-            sizeof(data_type) * BITS2BLOCKS(size_));
-  out_size += (BITS2BLOCKS(size_) * sizeof(uint64_t));
-
-  return out_size;
-}
-
-Bitmap::size_type Bitmap::Deserialize(std::istream& in) {
-  size_t in_size = 0;
-
-  in.read(reinterpret_cast<char *>(&size_), sizeof(size_type));
-  in_size += sizeof(size_type);
-
-  data_ = new data_type[BITS2BLOCKS(size_)];
-  in.read(reinterpret_cast<char *>(data_),
-          BITS2BLOCKS(size_) * sizeof(data_type));
-  in_size += (BITS2BLOCKS(size_) * sizeof(data_type));
-
-  return in_size;
-}
 
 }
 
