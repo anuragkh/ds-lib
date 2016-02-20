@@ -8,34 +8,35 @@
 class OrderStatisticTreeTest : public testing::Test {
  public:
   const int kNumValues = 1024 * 1024;
+  typedef OrderStatisticTree<>::OSTNode OSTNode;
 
-  void CheckTree(OrderStatisticTree<> tree) {
-    CheckSubtree(tree.GetRoot());
+  void CheckTree(OrderStatisticTree<>& tree) {
+    CheckSubtree(tree, tree.GetRoot());
   }
 
-  void CheckSubtree(OSTNode* root) {
-    if (root == NULL)
+  void CheckSubtree(OrderStatisticTree<>& tree, int root) {
+    if (root == nullnode)
       return;
 
-    OSTNode* left = root->left;
-    OSTNode* right = root->right;
+    int left = tree.GetLeft(root);
+    int right = tree.GetRight(root);
 
     int left_size = 0;
     int right_size = 0;
-    if (left) {
-      ASSERT_TRUE(left->data < root->data);
-      left_size = left->size;
+    if (left != nullnode) {
+      ASSERT_TRUE(tree.GetData(left) < tree.GetData(root));
+      left_size = tree.GetSize(left);
     }
 
-    if (right) {
-      ASSERT_TRUE(root->data < right->data);
-      right_size = right->size;
+    if (right != nullnode) {
+      ASSERT_TRUE(tree.GetData(root) < tree.GetData(right));
+      right_size = tree.GetSize(right);
     }
 
-    ASSERT_EQ(left_size + right_size + 1, root->size);
+    ASSERT_EQ(left_size + right_size + 1, tree.GetSize(root));
 
-    CheckSubtree(root->left);
-    CheckSubtree(root->right);
+    CheckSubtree(tree, left);
+    CheckSubtree(tree, right);
   }
 };
 
@@ -57,18 +58,6 @@ TEST_F(OrderStatisticTreeTest, BasicTest) {
   }
 
   CheckTree(tree);
-
-//  // Check searches
-//  fprintf(stderr, "Checking searches...\n");
-//  for (auto v : values) {
-//    bool found = tree.Search(v);
-//    ASSERT_TRUE(found);
-//  }
-//
-//  for (auto v : values) {
-//    bool found = tree.Search(v + 1);
-//    ASSERT_FALSE(found);
-//  }
 
   // Check ranks
   fprintf(stderr, "Checking ranks...\n");

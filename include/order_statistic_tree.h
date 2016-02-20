@@ -3,47 +3,113 @@
 #include <queue>
 #include <string>
 
-/* Order Statistic Tree Node */
-struct OSTNode {
-  struct OSTNode *left;
-  struct OSTNode *right;
-  int size, data;
-
-  /* Constructor */
-  OSTNode(int value)
-      : left(NULL),
-        right(NULL) {
-    data = value;
-    size = 1;
-  }
-
-};
+#define nullnode -1
+#define nullval -1
 
 /* Order Statistics Tree */
 template<int BALANCE_FACTOR = 4>
 class OrderStatisticTree {
 
  public:
+  /* Order Statistic Tree Node */
+  struct OSTNode {
+    int left;
+    int right;
+    int size;
+    int data;
+
+    /* Constructor */
+    OSTNode(int value)
+        : size(1),
+          left(nullnode),
+          right(nullnode) {
+      data = value;
+    }
+
+    OSTNode()
+        : data(nullval),
+          size(1),
+          left(nullnode),
+          right(nullnode) {
+    }
+  };
+
+  /* Order Statistic Tree Node Functions */
+  int GetData(int node) {
+    return pool_[node].data;
+  }
+
+  void SetData(int node, int val) {
+    pool_[node].data = val;
+  }
+
+  int GetLeft(int node) {
+    return pool_[node].left;
+  }
+
+  void SetLeft(int node, int left) {
+    pool_[node].left = left;
+  }
+
+  int GetRight(int node) {
+    return pool_[node].right;
+  }
+
+  void SetRight(int node, int right) {
+    pool_[node].right = right;
+  }
+
+  int GetSize(int node) {
+    return (node == nullnode) ? 0 : pool_[node].size;
+  }
+
+  void SetSize(int node, int size) {
+    pool_[node].size = size;
+  }
+
+  int IncSize(int node) {
+    return ++(pool_[node].size);
+  }
+
+  int DecSize(int node) {
+    return --(pool_[node].size);
+  }
+
+  int GetWeight(int node) {
+    return GetSize(node) + 1;
+  }
+
+  int NewNode(int val) {
+    pool_.push_back(OSTNode(val));
+    return pool_.size() - 1;
+  }
+
+  /* Used for traversing the tree */
   struct VisitingNode {
-    VisitingNode(OSTNode* n, int l, int ct)
+    VisitingNode(int n, int l, int ct)
         : node(n),
           level(l),
           child_type(ct) {
     }
 
-    OSTNode* node;
+    int node;
     int level;
     int child_type;
   };
 
   /* Constructor */
   OrderStatisticTree() {
-    root_ = NULL;
+    root_ = nullnode;
+  }
+
+  /* Get the root of the tree */
+  int GetRoot() {
+    return root_;
   }
 
   /* Function to check if tree is empty */
   bool IsEmpty() {
-    return root_ == NULL;
+    return root_ == nullnode;
   }
 
   /* Functions to insert data */
@@ -51,166 +117,89 @@ class OrderStatisticTree {
     root_ = Insert(x, root_);
   }
 
-  OSTNode *Insert(int x, OSTNode *node) {
-    if (node == NULL) {
-      node = new OSTNode(x);
-    } else if (x < node->data) {
-      node->size++;
-      node->left = Insert(x, node->left);
+  int Insert(int x, int node) {
+    if (node == nullnode) {
+      node = NewNode(x);
+    } else if (x < GetData(node)) {
+      IncSize(node);
+      SetLeft(node, Insert(x, GetLeft(node)));
+
       // Left too heavy
-      if (Weight(node->left) > BALANCE_FACTOR * Weight(node->right)) {
+      if (GetWeight(GetLeft(node))
+          > BALANCE_FACTOR * GetWeight(GetRight(node))) {
         node = RotateWithLeftChild(node);
       }
-    } else if (x > node->data) {
-      node->size++;
-      node->right = Insert(x, node->right);
+    } else if (x > GetData(node)) {
+      IncSize(node);
+      SetRight(node, Insert(x, GetRight(node)));
       // Right too heavy
-      if (Weight(node->right) > BALANCE_FACTOR * Weight(node->left)) {
+      if (GetWeight(GetRight(node))
+          > BALANCE_FACTOR * GetWeight(GetLeft(node))) {
         node = RotateWithRightChild(node);
       }
     }
     return node;
   }
 
-//  /* Functions to delete data */
-//  bool Remove(int x) {
-//    if (IsEmpty() || Search(x) == false)
-//      return false;
-//
-//    root_ = Remove(x, root_);
-//    return true;
-//  }
-//
-//  OSTNode *Remove(int x, OSTNode *node) {
-//    if (node != NULL) {
-//      if (x < node->data) {
-//        node->left = Remove(x, node->left);
-//        node->size--;
-//      } else if (x > node->data) {
-//        node->right = Remove(x, node->right);
-//        node->size--;
-//      } else {
-//        if (Weight(node->left) > BALANCE_FACTOR * Weight(node->right)) {
-//          node = RotateWithLeftChild(node);
-//        } else if (Weight(node->right) > BALANCE_FACTOR * Weight(node->left)) {
-//          node = RotateWithRightChild(node);
-//        }
-//        if (node != NULL)
-//          node = Remove(x, node);
-//        else
-//          node->left = NULL;
-//      }
-//    }
-//    return node;
-//  }
-
   /* Rotate tree node with left child  */
-  OSTNode *RotateWithLeftChild(OSTNode *k2) {
-    OSTNode *k1 = k2->left;
-    k2->left = k1->right;
-    k2->size = (k2->size - k1->size + Size(k2->left));
-    k1->right = k2;
-    k1->size = (k1->size - Size(k2->left) + k2->size);
+  int RotateWithLeftChild(int k2) {
+    int k1 = GetLeft(k2);
+    int k3 = GetRight(k1);
+    SetLeft(k2, k3);
+    SetSize(k2, GetSize(k2) - GetSize(k1) + GetSize(k3));
+    SetRight(k1, k2);
+    SetSize(k1, GetSize(k1) - GetSize(k3) + GetSize(k2));
     return k1;
   }
 
   /* Rotate tree node with right child */
-  OSTNode *RotateWithRightChild(OSTNode *k1) {
-    OSTNode *k2 = k1->right;
-    k1->right = k2->left;
-    k1->size = Size(k1->left) + Size(k1->right) + 1;
-    k2->left = k1;
-    k2->size = Size(k2->left) + Size(k2->right) + 1;
+  int RotateWithRightChild(int k1) {
+    int k2 = GetRight(k1);
+    int k3 = GetLeft(k2);
+    SetRight(k1, k3);
+    SetSize(k1, GetSize(k1) - GetSize(k2) + GetSize(k3));
+    SetLeft(k2, k1);
+    SetSize(k2, GetSize(k2) - GetSize(k3) + GetSize(k1));
     return k2;
-  }
-
-  int Size(OSTNode* node) {
-    return node == NULL ? 0 : node->size;
-  }
-
-  int Weight(OSTNode* node) {
-    return Size(node) + 1;
-  }
-
-  /* Functions to count number of nodes */
-  int CountNodes() {
-    return CountNodes(root_);
-  }
-
-  int CountNodes(OSTNode *r) {
-    if (r == NULL)
-      return 0;
-    else {
-      int l = 1;
-      l += CountNodes(r->left);
-      l += CountNodes(r->right);
-      return l;
-    }
-  }
-
-  OSTNode* GetRoot() {
-    return root_;
-  }
-
-  /* Functions to Search for an element */
-  bool Search(int val) {
-    return Search(root_, val);
-  }
-
-  bool Search(OSTNode *r, int val) {
-    bool found = false;
-    while ((r != NULL) && !found) {
-      int rval = r->data;
-      if (val < rval)
-        r = r->left;
-      else if (val > rval)
-        r = r->right;
-      else {
-        found = true;
-        break;
-      }
-      found = Search(r, val);
-    }
-    return found;
   }
 
   int Rank(int x) {
     return Rank(root_, x) - 1;
   }
 
-  int Rank(OSTNode *r, int x) {
-    if (r == NULL)
+  int Rank(int node, int x) {
+    if (node == nullnode)
       return -1;
-    else if (x < r->data)
-      return Rank(r->left, x);
-    else if (x == r->data)
-      return Size(r->left) + 1;
+    else if (x < GetData(node))
+      return Rank(GetLeft(node), x);
+    else if (x == GetData(node))
+      return GetSize(GetLeft(node)) + 1;
     else
-      return Size(r->left) + 1 + Rank(r->right, x);
+      return GetSize(GetLeft(node)) + 1 + Rank(GetRight(node), x);
   }
 
   int Select(int i) {
     return Select(root_, i + 1);
   }
 
-  int Select(OSTNode *r, int i) {
-    if (r == NULL)
+  int Select(int node, int i) {
+    if (node == nullnode)
       return -1;
 
-    int left_size = Size(r->left);
+    int left_size = GetSize(GetLeft(node));
 
     if (i <= left_size)
-      return Select(r->left, i);
+      return Select(GetLeft(node), i);
     else if (i == left_size + 1)
-      return r->data;
+      return GetData(node);
     else
-      return Select(r->right, i - left_size - 1);
+      return Select(GetRight(node), i - left_size - 1);
   }
 
-  static std::string StringifyNode(VisitingNode& node) {
+  std::string StringifyNode(VisitingNode& node) {
     char buf[100];
-    sprintf(buf, "{val: %d, size: %d, %d}", node.node->data, node.node->size,
-            node.child_type);
+    sprintf(buf, "{data: %d, size: %d, %d}", GetData(node.node),
+            GetSize(node.node), node.child_type);
     return std::string(buf);
   }
 
@@ -219,7 +208,7 @@ class OrderStatisticTree {
     visiting.push(VisitingNode(root_, 0, -1));
     int level = 0;
     while (!visiting.empty()) {
-      auto head = visiting.front();
+      VisitingNode head = visiting.front();
       visiting.pop();
       if (level != head.level) {
         level = head.level;
@@ -228,18 +217,16 @@ class OrderStatisticTree {
 
       fprintf(stderr, "%s\t", StringifyNode(head).c_str());
 
-      if (head.node->left) {
-        visiting.push(VisitingNode(head.node->left, head.level + 1, 0));
+      if (GetLeft(head.node) != nullnode) {
+        visiting.push(VisitingNode(GetLeft(head.node), head.level + 1, 0));
       }
-      if (head.node->right) {
-        visiting.push(VisitingNode(head.node->right, head.level + 1, 1));
+      if (GetRight(head.node) != nullnode) {
+        visiting.push(VisitingNode(GetRight(head.node), head.level + 1, 1));
       }
     }
-
   }
 
  private:
-
-  OSTNode *root_;
-}
-;
+  std::vector<OSTNode> pool_;
+  int root_;
+};
