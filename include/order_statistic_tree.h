@@ -6,8 +6,18 @@
 #define nullnode -1
 #define nullval -1
 
+// Comparator; should return:
+//     -ve if a < b
+//       0 if a = b
+//     +ve if a > b
+struct DefaultCompare {
+  int operator()(int i, int j) {
+    return i - j;
+  }
+};
+
 /* Order Statistics Tree */
-template<int BALANCE_FACTOR = 4>
+template<typename Compare = DefaultCompare, int BalanceFactor = 4>
 class OrderStatisticTree {
 
  public:
@@ -98,8 +108,9 @@ class OrderStatisticTree {
   };
 
   /* Constructor */
-  OrderStatisticTree() {
-    root_ = nullnode;
+  OrderStatisticTree(const Compare& comp = Compare())
+      : root_(nullnode),
+        comp_(comp) {
   }
 
   /* Get the root of the tree */
@@ -120,22 +131,26 @@ class OrderStatisticTree {
   int Insert(int x, int node) {
     if (node == nullnode) {
       node = NewNode(x);
-    } else if (x < GetData(node)) {
-      IncSize(node);
-      SetLeft(node, Insert(x, GetLeft(node)));
+    } else {
+      int cmp = comp_(x, GetData(node));
+      if (cmp < 0) {
+        IncSize(node);
+        SetLeft(node, Insert(x, GetLeft(node)));
 
-      // Left too heavy
-      if (GetWeight(GetLeft(node))
-          > BALANCE_FACTOR * GetWeight(GetRight(node))) {
-        node = RotateWithLeftChild(node);
-      }
-    } else if (x > GetData(node)) {
-      IncSize(node);
-      SetRight(node, Insert(x, GetRight(node)));
-      // Right too heavy
-      if (GetWeight(GetRight(node))
-          > BALANCE_FACTOR * GetWeight(GetLeft(node))) {
-        node = RotateWithRightChild(node);
+        // Left too heavy - rotate left
+        if (GetWeight(GetLeft(node))
+            > BalanceFactor * GetWeight(GetRight(node))) {
+          node = RotateWithLeftChild(node);
+        }
+      } else if (cmp > 0) {
+        IncSize(node);
+        SetRight(node, Insert(x, GetRight(node)));
+
+        // Right too heavy - rotate right
+        if (GetWeight(GetRight(node))
+            > BalanceFactor * GetWeight(GetLeft(node))) {
+          node = RotateWithRightChild(node);
+        }
       }
     }
     return node;
@@ -170,12 +185,15 @@ class OrderStatisticTree {
   int Rank(int node, int x) {
     if (node == nullnode)
       return -1;
-    else if (x < GetData(node))
-      return Rank(GetLeft(node), x);
-    else if (x == GetData(node))
-      return GetSize(GetLeft(node)) + 1;
-    else
-      return GetSize(GetLeft(node)) + 1 + Rank(GetRight(node), x);
+    else {
+      int cmp = comp_(x, GetData(node));
+      if (cmp < 0)
+        return Rank(GetLeft(node), x);
+      else if (cmp == 0)
+        return GetSize(GetLeft(node)) + 1;
+      else
+        return GetSize(GetLeft(node)) + 1 + Rank(GetRight(node), x);
+    }
   }
 
   int Select(int i) {
@@ -229,4 +247,5 @@ class OrderStatisticTree {
  private:
   std::vector<OSTNode> pool_;
   int root_;
+  Compare comp_;
 };
