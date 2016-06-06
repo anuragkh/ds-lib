@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 
-#define NUM_ELEMENTS 1073741824
+#define NUM_ELEMENTS 10000000
 
 typedef unsigned long long int TimeStamp;
 static TimeStamp GetTimestamp() {
