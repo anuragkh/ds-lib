@@ -2,6 +2,7 @@
 #include <cassert>
 #include <queue>
 #include <string>
+#include <mutex>
 
 #define nullnode -1
 #define nullval -1
@@ -17,7 +18,7 @@ struct DefaultCompare {
 };
 
 /* Order Statistics Tree */
-template<typename Compare = DefaultCompare, int BalanceFactor = 4>
+template<typename T, typename Compare = DefaultCompare, int BalanceFactor = 4>
 class OrderStatisticTree {
 
  public:
@@ -26,10 +27,10 @@ class OrderStatisticTree {
     int left;
     int right;
     int size;
-    int data;
+    T data;
 
     /* Constructor */
-    OSTNode(int value)
+    OSTNode(T value)
         : size(1),
           left(nullnode),
           right(nullnode) {
@@ -45,15 +46,15 @@ class OrderStatisticTree {
   };
 
   /* Order Statistic Tree Node Functions */
-  int GetData(int node) {
+  const T GetData(int node) {
     return pool_[node].data;
   }
 
-  void SetData(int node, int val) {
+  void SetData(int node, T val) {
     pool_[node].data = val;
   }
 
-  int GetLeft(int node) {
+  const int GetLeft(int node) {
     return pool_[node].left;
   }
 
@@ -61,7 +62,7 @@ class OrderStatisticTree {
     pool_[node].left = left;
   }
 
-  int GetRight(int node) {
+  const int GetRight(int node) {
     return pool_[node].right;
   }
 
@@ -69,7 +70,7 @@ class OrderStatisticTree {
     pool_[node].right = right;
   }
 
-  int GetSize(int node) {
+  const int GetSize(int node) {
     return (node == nullnode) ? 0 : pool_[node].size;
   }
 
@@ -85,27 +86,28 @@ class OrderStatisticTree {
     return --(pool_[node].size);
   }
 
-  int GetWeight(int node) {
+  const int GetWeight(int node) {
     return GetSize(node) + 1;
   }
 
   int NewNode(int val) {
+    std::lock_guard<std::mutex> pool_guard(pool_mtx_);
     pool_.push_back(OSTNode(val));
     return pool_.size() - 1;
   }
 
-  /* Used for traversing the tree */
-  struct VisitingNode {
-    VisitingNode(int n, int l, int ct)
-        : node(n),
-          level(l),
-          child_type(ct) {
-    }
-
-    int node;
-    int level;
-    int child_type;
-  };
+//  /* Used for traversing the tree */
+//  struct VisitingNode {
+//    VisitingNode(int n, int l, int ct)
+//        : node(n),
+//          level(l),
+//          child_type(ct) {
+//    }
+//
+//    int node;
+//    int level;
+//    int child_type;
+//  };
 
   /* Constructor */
   OrderStatisticTree(const Compare& comp = Compare())
@@ -114,21 +116,21 @@ class OrderStatisticTree {
   }
 
   /* Get the root of the tree */
-  int GetRoot() {
+  const int GetRoot() {
     return root_;
   }
 
   /* Function to check if tree is empty */
-  bool IsEmpty() {
+  const bool IsEmpty() {
     return root_ == nullnode;
   }
 
   /* Functions to insert data */
-  void Insert(int x) {
+  void Insert(T x) {
     root_ = Insert(x, root_);
   }
 
-  int Insert(int x, int node) {
+  int Insert(T x, int node) {
     if (node == nullnode) {
       node = NewNode(x);
     } else {
@@ -178,11 +180,11 @@ class OrderStatisticTree {
     return k2;
   }
 
-  int Rank(int x) {
+  const int Rank(const T x) {
     return Rank(root_, x) - 1;
   }
 
-  int Rank(int node, int x) {
+  const int Rank(const int node, const T x) {
     if (node == nullnode)
       return -1;
     else {
@@ -196,11 +198,11 @@ class OrderStatisticTree {
     }
   }
 
-  int Select(int i) {
+  const int Select(const int i) {
     return Select(root_, i + 1);
   }
 
-  int Select(int node, int i) {
+  const int Select(const int node, const int i) {
     if (node == nullnode)
       return -1;
 
@@ -214,38 +216,40 @@ class OrderStatisticTree {
       return Select(GetRight(node), i - left_size - 1);
   }
 
-  std::string StringifyNode(VisitingNode& node) {
-    char buf[100];
-    sprintf(buf, "{data: %d, size: %d, %d}", GetData(node.node),
-            GetSize(node.node), node.child_type);
-    return std::string(buf);
-  }
-
-  void PrintTree() {
-    std::queue<VisitingNode> visiting;
-    visiting.push(VisitingNode(root_, 0, -1));
-    int level = 0;
-    while (!visiting.empty()) {
-      VisitingNode head = visiting.front();
-      visiting.pop();
-      if (level != head.level) {
-        level = head.level;
-        fprintf(stderr, "\n");
-      }
-
-      fprintf(stderr, "%s\t", StringifyNode(head).c_str());
-
-      if (GetLeft(head.node) != nullnode) {
-        visiting.push(VisitingNode(GetLeft(head.node), head.level + 1, 0));
-      }
-      if (GetRight(head.node) != nullnode) {
-        visiting.push(VisitingNode(GetRight(head.node), head.level + 1, 1));
-      }
-    }
-  }
+//  std::string StringifyNode(VisitingNode& node) {
+//    char buf[100];
+//    sprintf(buf, "{data: %d, size: %d, %d}", GetData(node.node),
+//            GetSize(node.node), node.child_type);
+//    return std::string(buf);
+//  }
+//
+//  void PrintTree() {
+//    std::queue<VisitingNode> visiting;
+//    visiting.push(VisitingNode(root_, 0, -1));
+//    int level = 0;
+//    while (!visiting.empty()) {
+//      VisitingNode head = visiting.front();
+//      visiting.pop();
+//      if (level != head.level) {
+//        level = head.level;
+//        fprintf(stderr, "\n");
+//      }
+//
+//      fprintf(stderr, "%s\t", StringifyNode(head).c_str());
+//
+//      if (GetLeft(head.node) != nullnode) {
+//        visiting.push(VisitingNode(GetLeft(head.node), head.level + 1, 0));
+//      }
+//      if (GetRight(head.node) != nullnode) {
+//        visiting.push(VisitingNode(GetRight(head.node), head.level + 1, 1));
+//      }
+//    }
+//  }
 
  private:
   std::vector<OSTNode> pool_;
   int root_;
   Compare comp_;
+
+  std::mutex pool_mtx_;
 };

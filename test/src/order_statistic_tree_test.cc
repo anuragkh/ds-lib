@@ -8,13 +8,13 @@
 class OrderStatisticTreeTest : public testing::Test {
  public:
   const int kNumValues = 1024 * 1024;
-  typedef OrderStatisticTree<>::OSTNode OSTNode;
+  typedef OrderStatisticTree<int>::OSTNode OSTNode;
 
-  void CheckTree(OrderStatisticTree<>& tree) {
+  void CheckTree(OrderStatisticTree<int>& tree) {
     CheckSubtree(tree, tree.GetRoot());
   }
 
-  void CheckSubtree(OrderStatisticTree<>& tree, int root) {
+  void CheckSubtree(OrderStatisticTree<int>& tree, int root) {
     if (root == nullnode)
       return;
 
@@ -51,7 +51,7 @@ TEST_F(OrderStatisticTreeTest, BasicTest) {
   std::random_shuffle(values.begin(), values.end());
 
   // Check insertions
-  OrderStatisticTree<> tree;
+  OrderStatisticTree<int> tree;
   fprintf(stderr, "Inserting...\n");
   for (auto v : values) {
     tree.Insert(v);

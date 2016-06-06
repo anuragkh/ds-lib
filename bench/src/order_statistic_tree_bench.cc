@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "%s does not take any arguments.\n", argv[0]);
   }
 
-  OrderStatisticTree<> tree;
+  OrderStatisticTree<int> tree;
   {
     std::vector<int> values;
 
