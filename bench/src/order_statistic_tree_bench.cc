@@ -38,7 +38,9 @@ int main(int argc, char** argv) {
     auto t1 = GetTimestamp();
     auto diff = t1 - t0;
     double avg = diff / values.size();
-    fprintf(stderr, "Average insertion time = %lf\n", avg);
+    fprintf(stderr,
+            "Took %llu time for inserting %zu elements; Average time = %lf\n",
+            diff, values.size(), avg);
   }
   {
     long sum = 0;
@@ -50,7 +52,10 @@ int main(int argc, char** argv) {
     auto t1 = GetTimestamp();
     auto diff = t1 - t0;
     double avg = diff / NUM_ELEMENTS;
-    fprintf(stderr, "Average rank time = %lf, sum = %lld\n", avg, sum);
+    fprintf(
+        stderr,
+        "Total time = %llu, #Elements = %zu, Average rank time = %lf, sum = %lld\n",
+        diff, NUM_ELEMENTS, avg, sum);
   }
 
   {
@@ -63,6 +68,9 @@ int main(int argc, char** argv) {
     auto t1 = GetTimestamp();
     auto diff = t1 - t0;
     double avg = diff / NUM_ELEMENTS;
-    fprintf(stderr, "Average select time = %lf, sum = %lld\n", avg, sum);
+    fprintf(
+        stderr,
+        "Total time = %llu, #Elements = %zu, Average select time = %lf, sum = %lld\n",
+        diff, NUM_ELEMENTS, avg, sum);
   }
 }
