@@ -108,7 +108,7 @@ class value_reference {
 
 // Iterators
 template<typename BitmapArrayImplementation>
-class iterator {
+class bitmap_array_iterator {
  public:
   typedef typename BitmapArrayImplementation::pos_type pos_type;
 
@@ -118,12 +118,12 @@ class iterator {
   typedef typename BitmapArrayImplementation::reference reference;
   typedef typename BitmapArrayImplementation::iterator_category iterator_category;
 
-  iterator() {
+  bitmap_array_iterator() {
     array_ = NULL;
     pos_ = 0;
   }
 
-  iterator(BitmapArrayImplementation* array, pos_type pos) {
+  bitmap_array_iterator(BitmapArrayImplementation* array, pos_type pos) {
     array_ = array;
     pos_ = pos;
   }
@@ -132,39 +132,39 @@ class iterator {
     return reference(array_, pos_);
   }
 
-  iterator& operator++() {
+  bitmap_array_iterator& operator++() {
     pos_++;
     return *this;
   }
 
-  iterator operator++(int) {
-    iterator it = *this;
+  bitmap_array_iterator operator++(int) {
+    bitmap_array_iterator it = *this;
     ++(*this);
     return it;
   }
 
-  iterator& operator--() {
+  bitmap_array_iterator& operator--() {
     pos_--;
     return *this;
   }
 
-  iterator operator--(int) {
-    iterator it = *this;
+  bitmap_array_iterator operator--(int) {
+    bitmap_array_iterator it = *this;
     --(*this);
     return it;
   }
 
-  iterator& operator+=(difference_type i) {
+  bitmap_array_iterator& operator+=(difference_type i) {
     pos_ += i;
     return *this;
   }
 
-  iterator& operator-=(difference_type i) {
+  bitmap_array_iterator& operator-=(difference_type i) {
     pos_ -= i;
     return *this;
   }
 
-  iterator& operator=(const iterator& it) {
+  bitmap_array_iterator& operator=(const bitmap_array_iterator& it) {
     if (this != &it) {
       array_ = it.array_;
       pos_ = it.pos_;
@@ -172,13 +172,13 @@ class iterator {
     return *this;
   }
 
-  iterator operator+(difference_type i) const {
-    iterator it = *this;
+  bitmap_array_iterator operator+(difference_type i) const {
+    bitmap_array_iterator it = *this;
     return it += i;
   }
 
-  iterator operator-(difference_type i) const {
-    iterator it = *this;
+  bitmap_array_iterator operator-(difference_type i) const {
+    bitmap_array_iterator it = *this;
     return it -= i;
   }
 
@@ -186,31 +186,31 @@ class iterator {
     return *(*this + i);
   }
 
-  bool operator==(const iterator& it) const {
+  bool operator==(const bitmap_array_iterator& it) const {
     return it.pos_ == pos_;
   }
 
-  bool operator!=(const iterator& it) const {
+  bool operator!=(const bitmap_array_iterator& it) const {
     return !(*this == it);
   }
 
-  bool operator<(const iterator& it) const {
+  bool operator<(const bitmap_array_iterator& it) const {
     return pos_ < it.pos_;
   }
 
-  bool operator>(const iterator& it) const {
+  bool operator>(const bitmap_array_iterator& it) const {
     return pos_ > it.pos_;
   }
 
-  bool operator>=(const iterator& it) const {
+  bool operator>=(const bitmap_array_iterator& it) const {
     return !(*this < it);
   }
 
-  bool operator<=(const iterator& it) const {
+  bool operator<=(const bitmap_array_iterator& it) const {
     return !(*this > it);
   }
 
-  difference_type operator-(const iterator& it) {
+  difference_type operator-(const bitmap_array_iterator& it) {
     return pos_ - it.pos_;
   }
 
@@ -220,7 +220,7 @@ class iterator {
 };
 
 template<typename BitmapArrayImplementation>
-class const_iterator {
+class const_bitmap_array_iterator {
  public:
   typedef typename BitmapArrayImplementation::pos_type pos_type;
 
@@ -232,7 +232,8 @@ class const_iterator {
 
   typedef typename BitmapArrayImplementation::value_type const_reference;
 
-  const_iterator(const BitmapArrayImplementation* array, pos_type pos) {
+  const_bitmap_array_iterator(const BitmapArrayImplementation* array,
+                              pos_type pos) {
     array_ = array;
     pos_ = pos;
   }
@@ -241,45 +242,45 @@ class const_iterator {
     return array_->Get(pos_);
   }
 
-  const_iterator& operator++() {
+  const_bitmap_array_iterator& operator++() {
     pos_++;
     return *this;
   }
 
-  const_iterator operator++(int) {
-    const_iterator it = *this;
+  const_bitmap_array_iterator operator++(int) {
+    const_bitmap_array_iterator it = *this;
     ++(*this);
     return it;
   }
 
-  const_iterator& operator--() {
+  const_bitmap_array_iterator& operator--() {
     pos_--;
     return *this;
   }
 
-  const_iterator operator--(int) {
-    const_iterator it = *this;
+  const_bitmap_array_iterator operator--(int) {
+    const_bitmap_array_iterator it = *this;
     --(*this);
     return it;
   }
 
-  const_iterator& operator+=(difference_type i) {
+  const_bitmap_array_iterator& operator+=(difference_type i) {
     pos_ += i;
     return *this;
   }
 
-  const_iterator& operator-=(difference_type i) {
+  const_bitmap_array_iterator& operator-=(difference_type i) {
     pos_ -= i;
     return *this;
   }
 
-  const_iterator operator+(difference_type i) const {
-    const_iterator it = *this;
+  const_bitmap_array_iterator operator+(difference_type i) const {
+    const_bitmap_array_iterator it = *this;
     return it += i;
   }
 
-  const_iterator operator-(difference_type i) const {
-    const_iterator it = *this;
+  const_bitmap_array_iterator operator-(difference_type i) const {
+    const_bitmap_array_iterator it = *this;
     return it -= i;
   }
 
@@ -287,31 +288,31 @@ class const_iterator {
     return *(*this + i);
   }
 
-  bool operator==(const const_iterator& it) const {
+  bool operator==(const const_bitmap_array_iterator& it) const {
     return it.pos_ == pos_;
   }
 
-  bool operator!=(const const_iterator& it) const {
+  bool operator!=(const const_bitmap_array_iterator& it) const {
     return !(*this == it);
   }
 
-  bool operator<(const const_iterator& it) const {
+  bool operator<(const const_bitmap_array_iterator& it) const {
     return pos_ < it.pos_;
   }
 
-  bool operator>(const const_iterator& it) const {
+  bool operator>(const const_bitmap_array_iterator& it) const {
     return pos_ > it.pos_;
   }
 
-  bool operator>=(const const_iterator& it) const {
+  bool operator>=(const const_bitmap_array_iterator& it) const {
     return !(*this < it);
   }
 
-  bool operator<=(const const_iterator& it) const {
+  bool operator<=(const const_bitmap_array_iterator& it) const {
     return !(*this > it);
   }
 
-  difference_type operator-(const const_iterator& it) {
+  difference_type operator-(const const_bitmap_array_iterator& it) {
     return pos_ - it.pos_;
   }
 
@@ -504,8 +505,8 @@ class UnsignedBitmapArray : public BitmapArray<T> {
   typedef T value_type;
   typedef T* pointer;
   typedef value_reference<UnsignedBitmapArray<T>> reference;
-  typedef iterator<UnsignedBitmapArray<T>> iterator;
-  typedef const_iterator<UnsignedBitmapArray<T>> const_iterator;
+  typedef bitmap_array_iterator<UnsignedBitmapArray<T>> iterator;
+  typedef const_bitmap_array_iterator<UnsignedBitmapArray<T>> const_iterator;
   typedef std::random_access_iterator_tag iterator_category;
 
   UnsignedBitmapArray()
@@ -593,8 +594,8 @@ class SignedBitmapArray : public BitmapArray<T> {
   typedef T value_type;
   typedef T* pointer;
   typedef value_reference<SignedBitmapArray<T>> reference;
-  typedef iterator<SignedBitmapArray<T>> iterator;
-  typedef const_iterator<SignedBitmapArray<T>> const_iterator;
+  typedef bitmap_array_iterator<SignedBitmapArray<T>> iterator;
+  typedef const_bitmap_array_iterator<SignedBitmapArray<T>> const_iterator;
   typedef std::random_access_iterator_tag iterator_category;
 
   SignedBitmapArray()
