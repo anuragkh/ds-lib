@@ -2,6 +2,7 @@
 #define CONC_VECTORS_H_
 
 #include <array>
+#include <atomic>
 
 #define CUSTOM_LOCKS
 #include "locks.h"
