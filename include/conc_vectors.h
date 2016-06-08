@@ -65,7 +65,7 @@ class LockFreeGrowingList {
   LockFreeGrowingList() {
     T* null_ptr = NULL;
     for(auto& x : buckets_)
-      std::atomic_init(&x, null_ptr);
+      x = null_ptr;
     buckets_[0] = new T[FBS];
     size_ = 0;
   }
