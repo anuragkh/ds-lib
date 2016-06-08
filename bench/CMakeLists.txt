@@ -22,3 +22,5 @@ ADD_EXECUTABLE(bmarray_bench src/bitmap_array_bench.cc)
 ADD_EXECUTABLE(eliasgamma_bench src/elias_gamma_bench.cc)
 ADD_EXECUTABLE(ost_bench src/order_statistic_tree_bench.cc)
 ADD_EXECUTABLE(cv_bench src/conc_vectors_bench.cc)
+
+target_link_libraries(cv_bench ${CMAKE_THREAD_LIBS_INIT})

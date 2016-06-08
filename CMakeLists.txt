@@ -21,6 +21,8 @@ FILE(MAKE_DIRECTORY ${LIBRARY_OUTPUT_PATH})
 SET(INCLUDE include/)
 INCLUDE_DIRECTORIES(${INCLUDE})
 
+find_package(Threads REQUIRED)
+
 ADD_SUBDIRECTORY(bench)
 
 # Testing framework
