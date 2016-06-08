@@ -77,7 +77,8 @@ class LockFreeGrowingList {
     if (buckets_[bucket_idx] == NULL) {
       try_allocate_bucket(bucket_idx);
     }
-    uint32_t bucket_off = idx - (FBS * (1U << (bucket_idx - 1)));
+    uint32_t bucket_start = idx >= FBS ? (FBS * (1U << (bucket_idx - 1))) : 0;
+    uint32_t bucket_off = idx - bucket_start;
     set(bucket_idx, bucket_off, val);
   }
 
