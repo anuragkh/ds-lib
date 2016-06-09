@@ -89,7 +89,7 @@ static inline uint32_t log2(uint32_t x) {
   return y;
 }
 
-template<class T, uint32_t FBS = 2, uint32_t NBUCKETS = 32, T INVALID = 2147483648>
+template<class T, uint32_t FBS = 2, uint32_t NBUCKETS = 32>
 class LockFreeGrowingList {
  public:
   typedef std::atomic<T*> AtomicBucketRef;
@@ -100,7 +100,6 @@ class LockFreeGrowingList {
       x = null_ptr;
     buckets_[0] = new T[FBS];
     T* bucket = buckets_[0];
-    std::fill(bucket, bucket + FBS, INVALID);
     write_tail_ = 0;
     read_tail_ = 0;
   }
@@ -164,7 +163,6 @@ class LockFreeGrowingList {
   void try_allocate_bucket(uint32_t bucket_idx) {
     uint32_t size = FBS * (1U << (bucket_idx - 1));
     T* new_bucket = new T[size];
-    std::fill(new_bucket, new_bucket + size, INVALID);
     T* null_ptr = NULL;
 
     // Only one thread will be successful in replacing the NULL reference with newly
@@ -185,9 +183,6 @@ class LockFreeGrowingList {
 
   const T get(uint32_t bucket_idx, uint32_t bucket_off) {
     T* bucket = buckets_[bucket_idx];
-    if (bucket == NULL) {
-      return INVALID;
-    }
     return bucket[bucket_off];
   }
 
