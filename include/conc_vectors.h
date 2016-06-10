@@ -5,7 +5,7 @@
 #include <atomic>
 #include <fstream>
 
-#define CUSTOM_LOCKS
+#define STL_LOCKS
 #include "locks.h"
 
 template<class T>
@@ -14,9 +14,11 @@ class ConcurrentVector {
   ConcurrentVector() {
   }
 
-  void push_back(const T val) {
+  uint32_t push_back(const T val) {
     WriteLock write_guard(mtx_);
+    uint32_t idx = data_.size();
     data_.push_back(val);
+    return idx;
   }
 
   T at(const uint32_t i) {
@@ -32,10 +34,6 @@ class ConcurrentVector {
   void snapshot(std::vector<T> &out) {
     ReadLock read_guard(mtx_);
     out = data_;
-  }
-
-  std::vector<T>& vector() {
-    return data_;
   }
 
   const uint32_t serialize(std::ostream& out) {
@@ -90,37 +88,72 @@ static inline uint32_t log2(uint32_t x) {
 }
 
 template<class T, uint32_t FBS = 2, uint32_t NBUCKETS = 32>
-class LockFreeGrowingList {
+class __LockFreeBase {
  public:
   typedef std::atomic<T*> AtomicBucketRef;
 
-  LockFreeGrowingList() {
+  __LockFreeBase() {
     T* null_ptr = NULL;
     for (auto& x : buckets_)
       x = null_ptr;
     buckets_[0] = new T[FBS];
     T* bucket = buckets_[0];
-    write_tail_ = 0;
-    read_tail_ = 0;
   }
 
-  void push_back(const T val) {
-    uint32_t idx = write_tail_.fetch_add(1);
-    uint32_t bucket_idx = idx >= FBS ? (log2(idx / FBS) + 1) : 0;
+  void try_allocate_bucket(uint32_t bucket_idx) {
+    uint32_t size = FBS * (1U << (bucket_idx - 1));
+    T* new_bucket = new T[size];
+    T* null_ptr = NULL;
 
-    if (buckets_[bucket_idx] == NULL) {
-      try_allocate_bucket(bucket_idx);
+    // Only one thread will be successful in replacing the NULL reference with newly
+    // allocated bucket.
+    if (std::atomic_compare_exchange_weak(&buckets_[bucket_idx], &null_ptr,
+                                          new_bucket)) {
+      return;
     }
+
+    // All other threads will deallocate the newly allocated bucket.
+    delete[] new_bucket;
+  }
+
+  void set(uint32_t idx, const T val) {
+    uint32_t bucket_idx = idx >= FBS ? (log2(idx / FBS) + 1) : 0;
     uint32_t bucket_start = idx >= FBS ? (FBS * (1U << (bucket_idx - 1))) : 0;
     uint32_t bucket_off = idx - bucket_start;
-    set(bucket_idx, bucket_off, val);
-    while (!std::atomic_compare_exchange_weak(&read_tail_, &idx, idx + 1));
+    if (buckets_[bucket_idx] == NULL)
+      try_allocate_bucket(bucket_idx);
+    buckets_[bucket_idx][bucket_off] = val;
+  }
+
+  const T get(uint32_t idx) {
+    uint32_t bucket_idx = idx >= FBS ? (log2(idx / FBS) + 1) : 0;
+    uint32_t bucket_off = idx - (FBS * (1U << (bucket_idx - 1)));
+    T* bucket = buckets_[bucket_idx];
+    return bucket[bucket_off];
+  }
+
+ private:
+  std::array<AtomicBucketRef, NBUCKETS> buckets_;
+};
+
+template<class T, uint32_t FBS = 2, uint32_t NBUCKETS = 32>
+class LockFreeGrowingList : public __LockFreeBase<T, FBS, NBUCKETS> {
+ public:
+  LockFreeGrowingList()
+      : write_tail_(0),
+        read_tail_(0) {
+  }
+
+  uint32_t push_back(const T val) {
+    uint32_t idx = std::atomic_fetch_add(&write_tail_, 1U);
+    this->set(idx, val);
+    while (!std::atomic_compare_exchange_weak(&read_tail_, &idx, idx + 1))
+      ;
+    return idx;
   }
 
   const T at(const uint32_t idx) {
-    uint32_t bucket_idx = idx >= FBS ? (log2(idx / FBS) + 1) : 0;
-    uint32_t bucket_off = idx - (FBS * (1U << (bucket_idx - 1)));
-    return get(bucket_idx, bucket_off);
+    return this->get(idx);
   }
 
   const uint32_t size() {
@@ -160,33 +193,6 @@ class LockFreeGrowingList {
   }
 
  private:
-  void try_allocate_bucket(uint32_t bucket_idx) {
-    uint32_t size = FBS * (1U << (bucket_idx - 1));
-    T* new_bucket = new T[size];
-    T* null_ptr = NULL;
-
-    // Only one thread will be successful in replacing the NULL reference with newly
-    // allocated bucket.
-    if (std::atomic_compare_exchange_weak(&buckets_[bucket_idx], &null_ptr,
-                                          new_bucket)) {
-      return;
-    }
-
-    // All other threads will deallocate the newly allocated bucket.
-    delete[] new_bucket;
-  }
-
-  void set(uint32_t bucket_idx, uint32_t bucket_off, const T val) {
-    T* bucket = buckets_[bucket_idx];
-    bucket[bucket_off] = val;
-  }
-
-  const T get(uint32_t bucket_idx, uint32_t bucket_off) {
-    T* bucket = buckets_[bucket_idx];
-    return bucket[bucket_off];
-  }
-
-  std::array<AtomicBucketRef, NBUCKETS> buckets_;
   std::atomic<uint32_t> write_tail_;
   std::atomic<uint32_t> read_tail_;
 };
