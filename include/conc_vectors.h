@@ -6,6 +6,7 @@
 #include <fstream>
 
 #define STL_LOCKS
+#define BSR
 #include "locks.h"
 
 template<class T>
@@ -73,20 +74,6 @@ class ConcurrentVector {
   Mutex mtx_;
 };
 
-static inline uint32_t log2(uint32_t x) {
-  uint32_t y = 0;
-#ifdef BSR
-  asm ( "\tbsr %1, %0\n"
-      : "=r"(y)
-      : "r" (x)
-  );
-#else
-  while (x >>= 1)
-    ++y;
-#endif
-  return y;
-}
-
 template<class T, uint32_t FBS = 2, uint32_t NBUCKETS = 32>
 class __LockFreeBase {
  public:
@@ -133,6 +120,20 @@ class __LockFreeBase {
   }
 
  private:
+  static inline uint32_t log2(uint32_t x) {
+    uint32_t y = 0;
+#ifdef BSR
+    asm ( "\tbsr %1, %0\n"
+        : "=r"(y)
+        : "r" (x)
+    );
+#else
+    while (x >>= 1)
+      ++y;
+#endif
+    return y;
+  }
+
   std::array<AtomicBucketRef, NBUCKETS> buckets_;
 };
 
