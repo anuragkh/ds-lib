@@ -4,6 +4,7 @@
 #include <vector>
 #include <pthread.h>
 #include <poll.h>
+#include <mutex>
 
 class MutexImpl {
  public:
