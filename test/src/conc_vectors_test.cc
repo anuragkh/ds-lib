@@ -1,6 +1,8 @@
 #include "conc_vectors.h"
 #include "utils.h"
 
+#include <algorithm>
+
 #include "gtest/gtest.h"
 
 class ConcVectorsTest : public testing::Test {
