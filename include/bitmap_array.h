@@ -563,11 +563,11 @@ class UnsignedBitmapArray : public BitmapArray<T> {
   }
 
   const_iterator end() const {
-    return iterator(this, this->num_elements_);
+    return const_iterator(this, this->num_elements_);
   }
 
   const_iterator cend() const {
-    return iterator(this, this->num_elements_);
+    return const_iterator(this, this->num_elements_);
   }
 
   void swap(const UnsignedBitmapArray<T>& other) {

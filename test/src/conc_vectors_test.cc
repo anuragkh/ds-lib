@@ -30,3 +30,18 @@ TEST_F(ConcVectorsTest, LockFreeVectorTest) {
     ASSERT_EQ(array.at(i), i);
   }
 }
+
+TEST_F(ConcVectorsTest, LockFreeVectorSearchTest) {
+  LockFreeGrowingList<uint64_t> array;
+  for (uint64_t i = 0; i < kArraySize; i++) {
+    array.push_back(i);
+  }
+
+  auto begin = array.begin();
+  auto end = array.end();
+  auto size = end - begin;
+  for (uint64_t i = 0; i < kArraySize; i++) {
+    uint64_t pos = std::prev(std::upper_bound(begin, end, i)) - begin;
+    ASSERT_EQ(pos, i);
+  }
+}

@@ -70,32 +70,6 @@ int main(int argc, char** argv) {
   }
 
   {
-    LockFreeGrowingList<uint32_t, 16> array;
-
-    t0 = GetTimestamp();
-    for (size_t i = 0; i < ARRAY_SIZE; i++) {
-      array.push_back(i);
-    }
-    t1 = GetTimestamp();
-    double avg = (double) (t1 - t0) / ARRAY_SIZE;
-    fprintf(stderr,
-            "Time to fill Lock-free growing list (64) = %llu, avg = %lf\n",
-            (t1 - t0), avg);
-
-    int64_t sum = 0;
-    t0 = GetTimestamp();
-    for (size_t i = 0; i < ARRAY_SIZE; i++) {
-      sum += array.at(i);
-    }
-    t1 = GetTimestamp();
-    avg = (double) (t1 - t0) / ARRAY_SIZE;
-    fprintf(
-        stderr,
-        "Time to read Lock-free growing list (64) = %llu, avg = %lf, sum=%lld\n",
-        (t1 - t0), avg, sum);
-  }
-
-  {
     std::vector<uint32_t> array;
 
     t0 = GetTimestamp();
