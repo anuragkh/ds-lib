@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(ds-lib CXX)
+PROJECT(succinct-ds CXX)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -19,13 +19,18 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 FILE(MAKE_DIRECTORY ${LIBRARY_OUTPUT_PATH})
 
 SET(INCLUDE include/)
-SET(EXTERNAL_INCLUDE external/cst_v_1_1/ external/divsufsortxx)
-FILE(GLOB_RECURSE SOURCE_FILES src/*.cc)
-INCLUDE_DIRECTORIES(${INCLUDE} ${EXTERNAL_INCLUDE})
-ADD_LIBRARY(ds STATIC ${SOURCE_FILES})
-SET_TARGET_PROPERTIES(ds PROPERTIES LINKER_LANGUAGE CXX)
-TARGET_LINK_LIBRARIES(ds cst)
+INCLUDE_DIRECTORIES(${INCLUDE})
 
-ADD_SUBDIRECTORY(external/cst_v_1_1)
+find_package(Threads REQUIRED)
+
 ADD_SUBDIRECTORY(bench)
-ADD_SUBDIRECTORY(construct)
+
+# Testing framework
+# Build google testing framework
+add_subdirectory(external/gtest-1.7.0)
+
+# Build and run all tests for succinct
+add_subdirectory(test)
+
+enable_testing()
+add_test(DSTest ${TESTS_PATH}/ds_test)

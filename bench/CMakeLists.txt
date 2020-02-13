@@ -15,11 +15,12 @@ else()
 endif()
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g")
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-FILE(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-
 SET(INCLUDE include/)
-FILE(GLOB SOURCE_FILES src/*.cc)
 INCLUDE_DIRECTORIES(${INCLUDE})
-ADD_EXECUTABLE(stbench ${SOURCE_FILES})
-TARGET_LINK_LIBRARIES(stbench ds)
+ADD_EXECUTABLE(bm_bench src/bitmap_bench.cc)
+ADD_EXECUTABLE(bmarray_bench src/bitmap_array_bench.cc)
+ADD_EXECUTABLE(eliasgamma_bench src/elias_gamma_bench.cc)
+ADD_EXECUTABLE(ost_bench src/order_statistic_tree_bench.cc)
+ADD_EXECUTABLE(cv_bench src/conc_vectors_bench.cc)
+
+target_link_libraries(cv_bench ${CMAKE_THREAD_LIBS_INIT})
