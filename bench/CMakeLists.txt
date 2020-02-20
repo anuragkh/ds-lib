@@ -17,7 +17,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g")
 
 SET(INCLUDE include/)
 INCLUDE_DIRECTORIES(${INCLUDE})
-ADD_EXECUTABLE(bm_bench src/bitmap_bench.cc)
+ADD_EXECUTABLE(bm_bench src/bitmap_bench.cc ../include/elias_gamma_encoder.h)
 ADD_EXECUTABLE(bmarray_bench src/bitmap_array_bench.cc)
 ADD_EXECUTABLE(eliasgamma_bench src/elias_gamma_bench.cc)
 ADD_EXECUTABLE(ost_bench src/order_statistic_tree_bench.cc)

@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     for (uint64_t i = 0; i < ARRAY_SIZE; i++) {
       array[i] = i;
     }
-    bitmap::EliasGammaEncodedArray<uint64_t> enc_array(array, ARRAY_SIZE);
+    bitmap::EliasGammaDeltaEncodedArray<uint64_t> enc_array(array, ARRAY_SIZE);
     t1 = GetTimestamp();
 
     fprintf(stderr, "Time to fill Delta Encoded Array = %llu\n", (t1 - t0));

@@ -14,7 +14,7 @@ TEST_F(DeltaEncodedArrayTest, EliasGammaEncodedArrayTest) {
     array[i] = i;
   }
 
-  bitmap::EliasGammaEncodedArray<uint64_t> enc_array(array, kArraySize);
+  bitmap::EliasGammaDeltaEncodedArray<uint64_t> enc_array(array, kArraySize);
 
   for (uint64_t i = 0; i < kArraySize; i++) {
     ASSERT_EQ(enc_array[i], i);

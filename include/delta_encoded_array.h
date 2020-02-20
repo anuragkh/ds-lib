@@ -199,7 +199,7 @@ static struct EliasGammaPrefixSum {
 } elias_gamma_prefix_table;
 
 template<typename T, uint32_t sampling_rate = 128>
-class EliasGammaEncodedArray : public DeltaEncodedArray<T, sampling_rate> {
+class EliasGammaDeltaEncodedArray : public DeltaEncodedArray<T, sampling_rate> {
  public:
   typedef typename DeltaEncodedArray<T>::size_type size_type;
   typedef typename DeltaEncodedArray<T>::pos_type pos_type;
@@ -208,16 +208,16 @@ class EliasGammaEncodedArray : public DeltaEncodedArray<T, sampling_rate> {
   using DeltaEncodedArray<T>::EncodingSize;
   using DeltaEncodedArray<T>::EncodeDeltas;
 
-  EliasGammaEncodedArray()
+  EliasGammaDeltaEncodedArray()
       : DeltaEncodedArray<T>() {
   }
 
-  EliasGammaEncodedArray(T* elements, size_type num_elements)
-      : EliasGammaEncodedArray<T>() {
+  EliasGammaDeltaEncodedArray(T* elements, size_type num_elements)
+      : EliasGammaDeltaEncodedArray<T>() {
     this->Encode(elements, num_elements);
   }
 
-  virtual ~EliasGammaEncodedArray() {
+  virtual ~EliasGammaDeltaEncodedArray() {
   }
 
   T Get(pos_type i) {
