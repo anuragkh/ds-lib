@@ -1,4 +1,4 @@
-#include "bitmap.h"
+#include "bit_vector.h"
 
 #include <cstdio>
 #include <vector>
@@ -6,8 +6,8 @@
 
 typedef unsigned long long int TimeStamp;
 static TimeStamp GetTimestamp() {
-  struct timeval now;
-  gettimeofday(&now, NULL);
+  struct timeval now{};
+  gettimeofday(&now, nullptr);
 
   return now.tv_usec + (TimeStamp) now.tv_sec * 1000000;
 }
@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
   TimeStamp t0, t1;
 
   {
-    bitmap::Bitmap bitmap(BITMAP_SIZE);
+    bits::BitVector bitmap(BITMAP_SIZE);
 
     t0 = GetTimestamp();
     for (size_t i = 0; i < BITMAP_SIZE; i++) {
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     }
     t1 = GetTimestamp();
 
-    fprintf(stderr, "Time to fill Bitmap = %llu\n", (t1 - t0));
+    fprintf(stderr, "Time to fill BitVector = %llu\n", (t1 - t0));
 
     int64_t sum = 0;
     t0 = GetTimestamp();
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     }
     t1 = GetTimestamp();
 
-    fprintf(stderr, "Time to read Bitmap = %llu; sum=%lld\n",
+    fprintf(stderr, "Time to read BitVector = %llu; sum=%lld\n",
             (t1 - t0), sum);
   }
   {

@@ -30,7 +30,7 @@ class OrderStatisticTree {
     T data;
 
     /* Constructor */
-    OSTNode(T value)
+    explicit OSTNode(T value)
         : size(1),
           left(nullnode),
           right(nullnode) {
@@ -46,7 +46,7 @@ class OrderStatisticTree {
   };
 
   /* Order Statistic Tree Node Functions */
-  const T GetData(int node) {
+  T GetData(int node) {
     return pool_[node].data;
   }
 
@@ -54,7 +54,7 @@ class OrderStatisticTree {
     pool_[node].data = val;
   }
 
-  const int GetLeft(int node) {
+  int GetLeft(int node) {
     return pool_[node].left;
   }
 
@@ -62,7 +62,7 @@ class OrderStatisticTree {
     pool_[node].left = left;
   }
 
-  const int GetRight(int node) {
+  int GetRight(int node) {
     return pool_[node].right;
   }
 
@@ -70,7 +70,7 @@ class OrderStatisticTree {
     pool_[node].right = right;
   }
 
-  const int GetSize(int node) {
+  int GetSize(int node) {
     return (node == nullnode) ? 0 : pool_[node].size;
   }
 
@@ -86,7 +86,7 @@ class OrderStatisticTree {
     return --(pool_[node].size);
   }
 
-  const int GetWeight(int node) {
+  int GetWeight(int node) {
     return GetSize(node) + 1;
   }
 
@@ -110,18 +110,18 @@ class OrderStatisticTree {
 //  };
 
   /* Constructor */
-  OrderStatisticTree(const Compare& comp = Compare())
+  explicit OrderStatisticTree(const Compare& comp = Compare())
       : root_(nullnode),
         comp_(comp) {
   }
 
   /* Get the root of the tree */
-  const int GetRoot() {
+  int GetRoot() {
     return root_;
   }
 
   /* Function to check if tree is empty */
-  const bool IsEmpty() {
+  bool IsEmpty() {
     return root_ == nullnode;
   }
 
@@ -180,11 +180,11 @@ class OrderStatisticTree {
     return k2;
   }
 
-  const int Rank(const T x) {
+  int Rank(const T x) {
     return Rank(root_, x) - 1;
   }
 
-  const int Rank(const int node, const T x) {
+  int Rank(const int node, const T x) {
     if (node == nullnode)
       return -1;
     else {
@@ -198,11 +198,11 @@ class OrderStatisticTree {
     }
   }
 
-  const int Select(const int i) {
+  int Select(const int i) {
     return Select(root_, i + 1);
   }
 
-  const int Select(const int node, const int i) {
+  int Select(const int node, const int i) {
     if (node == nullnode)
       return -1;
 

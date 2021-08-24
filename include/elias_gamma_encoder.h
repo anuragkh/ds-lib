@@ -4,11 +4,11 @@
 #include <vector>
 #include <iostream>
 
-#include "bitmap.h"
-#include "bitmap_array.h"
+#include "bit_vector.h"
+#include "compact_vector.h"
 #include "utils.h"
 
-namespace bitmap {
+namespace bits {
 
 template<typename T>
 class EliasGammaEncoder {
@@ -21,39 +21,47 @@ class EliasGammaEncoder {
     return 2 * (Utils::BitWidth(val) - 1) + 1;
   }
 
-  static Bitmap* EncodeArray(std::vector<T> &vals) {
+  static void Encode(BitVector &out, pos_type *pos, T val) {
+    uint64_t nbits = Utils::BitWidth(val) - 1;
+    (*pos) += nbits;
+    assert((1ULL << nbits) <= val);
+    out.SetBit((*pos)++);
+    out.SetValPos(*pos, val - (1ULL << nbits), nbits);
+    (*pos) += nbits;
+  }
+
+  static BitVector EncodeArray(std::vector<T> &in) {
     size_type out_size = 0;
-    for (size_t i = 0; i < vals.size(); i++) {
-      assert(vals[i] > 0);
-      out_size += EncodingSize(vals[i]);
+    for (size_t i = 0; i < in.size(); i++) {
+      assert(in[i] > 0);
+      out_size += EncodingSize(in[i]);
     }
-    auto* out = new Bitmap(out_size);
-    uint64_t pos = 0;
-    for (size_t i = 0; i < vals.size(); i++) {
-      uint64_t nbits = Utils::BitWidth(vals[i]) - 1;
-      pos += nbits;
-      assert(vals[i] == 0 || (1ULL << nbits) <= vals[i]);
-      out->SetBit(pos++);
-      out->SetValPos(pos, vals[i] - (1ULL << nbits), nbits);
-      pos += nbits;
+    BitVector out(out_size);
+    pos_type pos = 0;
+    for (size_t i = 0; i < in.size(); i++) {
+      Encode(out, &pos, in[i]);
     }
     return out;
   }
 
-  static std::vector<T> DecodeArray(Bitmap* encoded) {
+  static T Decode(BitVector &in, pos_type *pos) {
+    width_type val_width = 0;
+    while (!in.GetBit(*pos)) {
+      val_width++;
+      (*pos)++;
+    }
+    (*pos)++;
+    T decoded = in.GetValPos(*pos, val_width) + (1ULL << val_width);
+    (*pos) += val_width;
+    return decoded;
+  }
+
+  static std::vector<T> DecodeArray(BitVector &in) {
     std::vector<T> out;
-    size_type off = 0;
-    auto max_off = encoded->GetSizeInBits();
-    while (off != max_off) {
-      width_type val_width = 0;
-      while (!encoded->GetBit(off)) {
-        val_width++;
-        off++;
-      }
-      off++;
-      T decoded = encoded->GetValPos(off, val_width) + (1ULL << val_width);
-      out.push_back(decoded);
-      off += val_width;
+    pos_type pos = 0;
+    auto max_pos = in.GetSizeInBits();
+    while (pos != max_pos) {
+      out.push_back(Decode(in, &pos));
     }
     return out;
   }

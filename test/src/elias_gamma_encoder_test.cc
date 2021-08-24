@@ -14,8 +14,8 @@ TEST_F(EliasGammaEncoderTest, EliasGammaEncodedArrayTest) {
     input.push_back(i + 1);
   }
 
-  auto encoded = bitmap::EliasGammaEncoder<uint64_t>::EncodeArray(input);
-  auto decoded = bitmap::EliasGammaEncoder<uint64_t>::DecodeArray(encoded);
+  auto encoded = bits::EliasGammaEncoder<uint64_t>::EncodeArray(input);
+  auto decoded = bits::EliasGammaEncoder<uint64_t>::DecodeArray(encoded);
 
   for (uint64_t i = 0; i < kArraySize; i++) {
     ASSERT_EQ(decoded[i], i + 1);

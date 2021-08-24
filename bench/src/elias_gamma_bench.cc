@@ -6,8 +6,8 @@
 
 typedef unsigned long long int TimeStamp;
 static TimeStamp GetTimestamp() {
-  struct timeval now;
-  gettimeofday(&now, NULL);
+  struct timeval now{};
+  gettimeofday(&now, nullptr);
 
   return now.tv_usec + (TimeStamp) now.tv_sec * 1000000;
 }
@@ -22,13 +22,13 @@ int main(int argc, char** argv) {
   TimeStamp t0, t1;
 
   {
-    uint64_t *array = new uint64_t[ARRAY_SIZE];
+    auto *array = new uint64_t[ARRAY_SIZE];
 
     t0 = GetTimestamp();
     for (uint64_t i = 0; i < ARRAY_SIZE; i++) {
       array[i] = i;
     }
-    bitmap::EliasGammaDeltaEncodedArray<uint64_t> enc_array(array, ARRAY_SIZE);
+    bits::EliasGammaDeltaEncodedVector<uint64_t> enc_array(array, ARRAY_SIZE);
     t1 = GetTimestamp();
 
     fprintf(stderr, "Time to fill Delta Encoded Array = %llu\n", (t1 - t0));
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "Time to read Delta Encoded Array = %llu; sum=%lld\n", (t1 - t0), sum);
   }
   {
-    uint64_t *array = new uint64_t[ARRAY_SIZE];
+    auto *array = new uint64_t[ARRAY_SIZE];
 
     t0 = GetTimestamp();
     for (size_t i = 0; i < ARRAY_SIZE; i++) {

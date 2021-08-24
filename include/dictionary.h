@@ -1,7 +1,7 @@
 #ifndef BITMAP_DICTIONARY_H_
 #define BITMAP_DICTIONARY_H_
 
-#include "bitmap.h"
+#include "bit_vector.h"
 #include "utils.h"
 
 namespace bitmap {
