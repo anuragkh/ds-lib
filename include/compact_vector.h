@@ -454,5 +454,26 @@ class CompactVector : public BitVector {
   }
 };
 
+class CompactPtrVector : CompactVector<uint64_t, 44> {
+ public:
+
+  // Type definitions
+  typedef typename BitVector::size_type size_type;
+  typedef typename BitVector::width_type width_type;
+  typedef typename BitVector::pos_type pos_type;
+  typedef int64_t tmp_pos_type;
+
+  CompactPtrVector() : CompactVector<uint64_t, 44>() {}
+
+  // Accessors, Mutators
+  void *At(pos_type idx) {
+    return reinterpret_cast<void *>(CompactVector<uint64_t, 44>::Get(idx) << 4ULL);
+  }
+
+  void PushBack(void *val) {
+    CompactVector<uint64_t, 44>::Append(reinterpret_cast<uint64_t>(val) >> 4ULL);
+  }
+};
+
 }
 #endif

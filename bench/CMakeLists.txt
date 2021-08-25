@@ -17,6 +17,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g")
 
 SET(INCLUDE include/)
 INCLUDE_DIRECTORIES(${INCLUDE})
-ADD_EXECUTABLE(bm_bench src/bit_vector_bench.cc)
+ADD_EXECUTABLE(bm_bench src/bit_vector_bench.cc ../include/compact_ptr.h)
 ADD_EXECUTABLE(bmarray_bench src/compact_vector_bench.cc)
 ADD_EXECUTABLE(eliasgamma_bench src/elias_gamma_bench.cc)

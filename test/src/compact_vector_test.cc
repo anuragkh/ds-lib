@@ -29,3 +29,18 @@ TEST_F(CompactVectorTest, CompactVectorTest2) {
     ASSERT_EQ(v[i], i);
   }
 }
+
+TEST_F(CompactVectorTest, CompactPtrVectorTest) {
+  bits::CompactPtrVector v;
+  for (uint64_t i = 0; i < kArraySize; i++) {
+    auto ptr = static_cast<uint64_t *>(malloc(32));
+    *ptr = i;
+    v.PushBack(ptr);
+  }
+
+  for (uint64_t i = 0; i < kArraySize; i++) {
+    auto ptr = static_cast<uint64_t *>(v.At(i));
+    ASSERT_EQ(*ptr, i);
+    free(ptr);
+  }
+}
