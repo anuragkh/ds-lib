@@ -176,8 +176,11 @@ class EliasGammaDeltaEncodedVector : public DeltaEncodedVector<T, sampling_rate>
           delta_width++;
           current_delta_offset++;
         }
+        current_delta_offset++;
         auto decoded_value = this->deltas_.GetValPos(current_delta_offset, delta_width) + (1ULL << delta_width);
+
         delta_sum += decoded_value;
+        current_delta_offset += delta_width;
         delta_idx += 1;
 
         // Roll back
